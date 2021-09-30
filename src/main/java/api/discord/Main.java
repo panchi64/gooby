@@ -1,4 +1,5 @@
 package api.discord;
 
-public class main {
+public class Main {
+
 }

@@ -1,4 +1,4 @@
 package api.youtube;
 
-public class main {
+public class Main {
 }

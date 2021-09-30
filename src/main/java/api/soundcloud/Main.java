@@ -1,4 +1,4 @@
 package api.soundcloud;
 
-public class main {
+public class Main {
 }

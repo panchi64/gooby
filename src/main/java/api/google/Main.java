@@ -1,4 +1,4 @@
 package api.google;
 
-public class main {
+public class Main {
 }

@@ -1,4 +1,4 @@
 package api.spotify;
 
-public class main {
+public class Main {
 }
