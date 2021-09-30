@@ -3,7 +3,7 @@ package auth;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class OAuthHelper {
-    //    Read from the environment variables file
+//    Read from the environment variables file
     private static final Dotenv env = Dotenv.load();
 
     private static final String DISCORD_AUTH_ID = env.get("DISCORD_AUTH");
@@ -15,7 +15,6 @@ public class OAuthHelper {
     private static final String SPOTIFY_AUTH_ID = env.get("SPOTIFY_AUTH");
 
 //  Enables the previous variables to be read only
-
     /**
      * Gets the Bot Token for the Discord Platform from an environmental variable
      *

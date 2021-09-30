@@ -10,6 +10,7 @@ public class Main {
          *              - channels
          *              - emojis
          */
+//        Initialize a Discord API connection
         api.discord.Main.init();
     }
 }
