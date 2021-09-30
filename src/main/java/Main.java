@@ -10,5 +10,6 @@ public class Main {
          *              - channels
          *              - emojis
          */
+        api.discord.Main.init();
     }
 }
