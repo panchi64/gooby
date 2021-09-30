@@ -1,0 +1,22 @@
+# Generated Files
+bin/**
+gen/**
+
+# Ignored files
+.env
+*.iml
+*.ipr
+*.iws
+.gradletasknamecache
+*.class
+*.jar
+*.war
+*.ear
+
+
+# Ignored folders
+.idea
+gradle
+.gradle/
+build/
+bin/
