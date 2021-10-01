@@ -49,3 +49,10 @@ The bot has the following capabilities:
 * Randomly choose a message in a given channel and make fun of it. For example:
     * ``Tomorrow we ride at dawn`` gets converted to ``Look at this clown saying "tOmOrRoW wE rIdE aT dAwN"`` followed by a given emoji.
 * Manual override for sending and reading messages.
+
+## Dependencies
+* [Dotenv](https://github.com/cdimascio/dotenv-java)
+* [Gson](https://github.com/google/gson)
+* [Google's OAuth Client](https://developers.google.com/api-client-library/java/google-oauth-java-client)
+* [Javacord](https://github.com/Javacord/Javacord)
+* [Log4j2](https://logging.apache.org/log4j/2.x/maven-artifacts.html)
