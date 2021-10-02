@@ -14,6 +14,7 @@ public class MessageListener implements MessageCreateListener {
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
 //        If the event is a "normal" chat message, send it to the trigger response method for evaluation
+//        TODO: Make is so it does not respond to slash commands if it contains the trigger?
             api.discord.Main.respondToTrigger(event);
     }
 }
