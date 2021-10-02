@@ -9,13 +9,11 @@ import org.javacord.api.entity.message.component.ActionRow;
 import org.javacord.api.entity.message.component.Button;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.SlashCommand;
+import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandOption;
 import org.javacord.api.interaction.SlashCommandOptionType;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 //Contains all the functionality for this platform
 public class Main {
@@ -33,8 +31,14 @@ public class Main {
         MessageListener messageReader = new MessageListener();
         discordApi.addListener(messageReader);
 
+        InteractionListener interactionListener = new InteractionListener();
+        discordApi.addListener(interactionListener);
+
 //        Initialize all slash commands
-        updateSlashCommands();
+//        updateSlashCommands();
+
+//        For debugging and removing unwanted slash commands
+//        List commands = discordApi.getGlobalSlashCommands().join();
     }
 
     /**
@@ -126,21 +130,25 @@ public class Main {
     /**
      * Creates a message with two emoji buttons right below. The default emojis are thumbs up and down.
      */
-    private static void voteMessageSimple(TextChannel channel, String content){
-//        Emojis to be used in the buttons
-//        Emoji thumbsUp = new Em
-
+     static void voteMessageSimple(SlashCommandInteraction command){
+//         TODO: Make the labels update with the vote count
 //        Voting buttons to be placed below the message
         Button yes = Button.secondary("yes", "\uD83D\uDC4D");
         Button no = Button.secondary("no", "\uD83D\uDC4E");
 
-        new MessageBuilder()
-                .setContent(content)
-                .addComponents(
-                        ActionRow.of(
-                                yes,
-                                no
-                        )
-                ).send(channel);
+         String question =
+//                  Simple sub command
+                 command.getFirstOption()
+//                  Question parameter (Sub-command option name)
+                 .get().getFirstOption()
+//                  The actual question
+                 .get().getStringValue().get();
+
+        command.createImmediateResponder()
+//                Question to be polled
+                .setContent(question)
+//                Buttons for voting
+                .addComponents(ActionRow.of(yes, no))
+                .respond();
     }
 }

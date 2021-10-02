@@ -4,6 +4,8 @@ import auth.OAuthHelper;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
+import org.javacord.api.interaction.SlashCommand;
+import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.listener.message.MessageCreateListener;
 
 public class MessageListener implements MessageCreateListener {
@@ -11,7 +13,7 @@ public class MessageListener implements MessageCreateListener {
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
-//        Responds to a trigger prompt when / commands are not a feasible option
-        api.discord.Main.respondToTrigger(event);
+//        If the event is a "normal" chat message, send it to the trigger response method for evaluation
+            api.discord.Main.respondToTrigger(event);
     }
 }
