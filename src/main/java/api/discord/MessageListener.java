@@ -6,7 +6,7 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 
-public class Listener implements MessageCreateListener {
+public class MessageListener implements MessageCreateListener {
     DiscordApi connection = new DiscordApiBuilder().setToken(OAuthHelper.getDiscordToken()).login().join();
 
     @Override
