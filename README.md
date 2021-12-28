@@ -54,5 +54,5 @@ The bot has the following capabilities:
 * [Dotenv](https://github.com/cdimascio/dotenv-java)
 * [Gson](https://github.com/google/gson)
 * [Google's OAuth Client](https://developers.google.com/api-client-library/java/google-oauth-java-client)
-* [Javacord](https://github.com/Javacord/Javacord)
-* [Log4j2](https://logging.apache.org/log4j/2.x/maven-artifacts.html)
+* [Discord4J](https://discord4j.com/)
+* [Logback](https://mvnrepository.com/artifact/ch.qos.logback/logback-classic)
