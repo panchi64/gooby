@@ -18,13 +18,13 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
 
 //    OAuth2 Client Library built by Google
-    implementation 'com.google.oauth-client:google-oauth-client:1.32.1'
+    implementation 'com.google.oauth-client:google-oauth-client:1.33.0'
 
 //    .env file support library
     implementation 'io.github.cdimascio:dotenv-java:2.2.3'
 
 //    Logger (SLF4J)
-    implementation 'ch.qos.logback:logback-classic:1.2.9'
+    implementation 'ch.qos.logback:logback-classic:1.2.10'
 
 //    Basic dependencies: Groovy and JUnit
     implementation 'org.codehaus.groovy:groovy-all:3.0.8'
