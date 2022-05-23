@@ -13,7 +13,8 @@ public class Main {
      * @return API token from .env file
      */
     private static String envGetToken() {
-        return Dotenv.load().get("TOKEN");
+        Dotenv dotenv = Dotenv.configure().directory("src/files").load();
+        return dotenv.get("TOKEN");
     }
 
     /**

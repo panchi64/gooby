@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.franciscocasiano'
-version '1.0-SNAPSHOT'
+version '0.0.1'
 
 repositories {
     mavenCentral()
@@ -12,22 +12,25 @@ repositories {
 
 dependencies {
 //    Discord API Wrapper Library
-    implementation 'com.discord4j:discord4j-core:3.2.1'
+    implementation 'com.discord4j:discord4j-core:3.2.2'
+
+//    Netty (Discord API Dependency) [Specifically for MacOS M1 chip computers]
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.77.Final:osx-aarch_64'
 
 //    JSON Parser
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.code.gson:gson:2.9.0'
 
 //    OAuth2 Client Library built by Google
-    implementation 'com.google.oauth-client:google-oauth-client:1.33.0'
+    implementation 'com.google.oauth-client:google-oauth-client:1.33.3'
 
 //    .env file support library
     implementation 'io.github.cdimascio:dotenv-java:2.2.3'
 
 //    Logger (SLF4J)
-    implementation 'ch.qos.logback:logback-classic:1.2.10'
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
 
 //    Basic dependencies: Groovy and JUnit
-    implementation 'org.codehaus.groovy:groovy-all:3.0.8'
+    implementation 'org.codehaus.groovy:groovy-all:3.0.10'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
