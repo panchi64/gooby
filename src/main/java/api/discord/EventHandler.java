@@ -7,7 +7,7 @@ import discord4j.core.event.domain.message.MessageUpdateEvent;
 import reactor.core.publisher.Mono;
 
 // This class is to categorize messages depending on what they contain. (ie commands, @, textual triggers, etc)
-public class Categorize {
+public class EventHandler {
     //    Receives an event and depending on what type of event it is, send it to the corresponding command
     public static Mono<Object> categorizeEvent(Event event) {
         if (event instanceof ReadyEvent readyEvent) {

@@ -25,7 +25,7 @@ public class Main {
         DiscordClient client = DiscordClient.create(TOKEN);
 
         Mono<Void> login = client.withGateway((GatewayDiscordClient gateway) ->
-                gateway.on(Event.class, Categorize::categorizeEvent));
+                gateway.on(Event.class, EventHandler::categorizeEvent));
         login.block();
     }
 }
