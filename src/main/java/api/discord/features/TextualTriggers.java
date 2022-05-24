@@ -38,8 +38,8 @@ public class TextualTriggers {
 //        Compares string to every key and checks if the string contains a trigger as some sort of substring.
         for (String key : triggerMap.keySet()) {
             if (messageContent.contains(key)) {
-                for (String part : triggerMap.get(key)) {
-                    sendResponseMessage(event, part);
+                for (String response : triggerMap.get(key)) {
+                    sendResponseMessage(event, response);
                 }
 
             }
@@ -50,7 +50,6 @@ public class TextualTriggers {
 
     private void sendResponseMessage(MessageCreateEvent event, String s) {
         Message message = event.getMessage();
-
         message.getChannel().flatMap(channel -> channel.createMessage(s)).block();
     }
 }
