@@ -25,13 +25,21 @@ public class TextualTriggers {
         return this.triggers;
     }
 
+    /**
+     * Responds to a message if the message contains a trigger word found in the given Map.
+     *
+     * @param triggerMap Map containing the bots text triggers.
+     * @param event      Message received.
+     * @return Message in the given channel.
+     */
     public Mono<Object> respond(Map<String, String> triggerMap, MessageCreateEvent event) {
         Message message = event.getMessage();
-        String[] listOfWords = message.getContent().split(" ");
+        String messageContent = message.getContent();
 
-        for (String word : listOfWords) {
-            if (triggerMap.containsKey(word)) {
-                return message.getChannel().flatMap(channel -> channel.createMessage(triggerMap.get(word)));
+//        Compares string to every key and checks if the string contains a trigger as some sort of substring.
+        for (String key : triggerMap.keySet()) {
+            if (messageContent.contains(key)) {
+                return message.getChannel().flatMap(channel -> channel.createMessage(triggerMap.get(key)));
             }
         }
 
