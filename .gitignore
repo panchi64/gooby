@@ -12,6 +12,7 @@ gen/**
 *.jar
 *.war
 *.ear
+triggers.txt
 
 
 # Ignored folders
