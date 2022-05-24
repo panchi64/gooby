@@ -15,6 +15,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+    private static final String TOKEN = envGetToken();
+    static DiscordClient client = DiscordClient.create(TOKEN);
+
     /**
      * Gets the Discord API token saved within a .env file
      *
@@ -30,8 +35,6 @@ public class Main {
      */
     public static void init() {
 //        Sets everything up before starting a connection to Discord.
-        final Logger logger = LoggerFactory.getLogger(Main.class);
-
         TextualTriggers textualTrigger = new TextualTriggers();
         try {
 //            Generates the HashMap for triggers or a new file depending on if the file has been found or not.
@@ -50,14 +53,19 @@ public class Main {
             logger.error("System has failed in creating a new file.", ioException);
         }
 
-        String TOKEN = envGetToken();
-        DiscordClient client = DiscordClient.create(TOKEN);
-
         Mono<Void> login = client.withGateway(
                 (GatewayDiscordClient gateway) -> gateway.on(
                         Event.class, event -> EventHandler.categorizeEvent(event, textualTrigger)
                 )
         );
         login.block();
+    }
+
+
+    /**
+     * Logs out and closes saves any important information to their corresponding files.
+     */
+    public static void shutdown() {
+        
     }
 }

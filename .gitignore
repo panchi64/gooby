@@ -16,8 +16,8 @@ triggers.txt
 
 
 # Ignored folders
-.idea
-gradle
+.idea/
+gradle/
 .gradle/
 build/
 bin/

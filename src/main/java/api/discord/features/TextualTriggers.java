@@ -33,16 +33,21 @@ public class TextualTriggers {
      * @return Message in the given channel.
      */
     public Mono<Object> respond(Map<String, String> triggerMap, MessageCreateEvent event) {
-        Message message = event.getMessage();
-        String messageContent = message.getContent();
+        String messageContent = event.getMessage().getContent();
 
 //        Compares string to every key and checks if the string contains a trigger as some sort of substring.
         for (String key : triggerMap.keySet()) {
             if (messageContent.contains(key)) {
-                return message.getChannel().flatMap(channel -> channel.createMessage(triggerMap.get(key)));
+                sendResponseMessage(event, triggerMap.get(key));
             }
         }
 
         return Mono.empty();
+    }
+
+    private void sendResponseMessage(MessageCreateEvent event, String s) {
+        Message message = event.getMessage();
+
+        message.getChannel().flatMap(channel -> channel.createMessage(s)).block();
     }
 }
