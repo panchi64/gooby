@@ -41,15 +41,21 @@ public class TextualTriggers {
                 for (String response : triggerMap.get(key)) {
                     sendResponseMessage(event, response);
                 }
-
             }
         }
 
         return Mono.empty();
     }
 
-    private void sendResponseMessage(MessageCreateEvent event, String s) {
+
+    /**
+     * Sends a message to the discord api in reaction to a given created message event.
+     *
+     * @param event   Event to respond to
+     * @param content Message contents
+     */
+    private void sendResponseMessage(MessageCreateEvent event, String content) {
         Message message = event.getMessage();
-        message.getChannel().flatMap(channel -> channel.createMessage(s)).block();
+        message.getChannel().flatMap(channel -> channel.createMessage(content)).block();
     }
 }

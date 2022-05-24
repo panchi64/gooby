@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-public class TriggerReader {
+public class TriggerFileHandler {
     public static Map<String, String[]> generateMap(String path) throws FileNotFoundException {
         Scanner scanner = new Scanner(new FileReader(path));
         Map<String, String[]> triggerMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
