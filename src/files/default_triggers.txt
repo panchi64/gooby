@@ -1,0 +1,4 @@
+// Delete the lines with double forward slashes before utilizing this file or a copy
+// In order to send multiple messages use double tilde (~) surrounded by 1 space on each side (example: " ~~ ")
+ping=pong
+gamer time?=https://media.giphy.com/media/4aFQ6F8s4wgz6/giphy.gif

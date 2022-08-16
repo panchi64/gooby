@@ -16,18 +16,18 @@ import reactor.core.publisher.Mono;
  * Handles different types of discord events by routing them to their corresponding classes.
  */
 public class EventHandler {
-    //    Receives an event and depending on what type of event it is, send it to the corresponding command
-    public static Mono<Object> categorizeEvent(Event event, TextualTriggers triggers) {
-        if (event instanceof ReadyEvent) {
-            LoggerFactory.getLogger(Main.class).debug("Connection to Discord gateway established.");
-            return Mono.empty();
-        } else if (event instanceof MessageCreateEvent messageCreateEvent) {
-            return triggers.respond(triggers.getTriggers(), messageCreateEvent);
-        } else if (event instanceof MessageUpdateEvent messageUpdateEvent) {
-            return Mono.empty();
-        } else if (event instanceof ApplicationCommandEvent applicationCommandEvent)
-            return Mono.empty();
-        else
-            return Mono.empty();
-    }
+  //    Receives an event and depending on what type of event it is, send it to the corresponding command
+  public static Mono<Object> categorizeEvent(Event event, TextualTriggers triggers) {
+    if (event instanceof ReadyEvent) {
+      LoggerFactory.getLogger(Main.class).debug("Connection to Discord gateway established.");
+      return Mono.empty();
+    } else if (event instanceof MessageCreateEvent messageCreateEvent) {
+      return triggers.respond(TextualTriggers.getTriggers(), messageCreateEvent);
+    } else if (event instanceof MessageUpdateEvent messageUpdateEvent) {
+      return Mono.empty();
+    } else if (event instanceof ApplicationCommandEvent applicationCommandEvent)
+      return Mono.empty();
+    else
+      return Mono.empty();
+  }
 }
