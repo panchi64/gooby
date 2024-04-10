@@ -54,7 +54,7 @@ If you have any ideas, suggestions, or bug reports, please open an [issue](https
 Make sure to follow the project's code of conduct.
 
 ### License
-This project is licensed under the MIT License.
+This project is licensed under the GNU General Public License v3.0
 
 ### Dependencies
 - Serenity - A Rust library for the Discord API.
