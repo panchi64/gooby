@@ -34,7 +34,7 @@ Open the `config.toml` file and enter your Discord bot token and other necessary
 
 `./target/release/discord-bot`
 
-### Usage
+## Usage
 
 1. Invite the bot to your Discord server using the invite link.
 2. Use the following commands to interact with the bot:
@@ -47,20 +47,20 @@ Open the `config.toml` file and enter your Discord bot token and other necessary
 - `/meme`: Generate a custom meme by providing the meme template and text.
 3. Enjoy the bot's features and have fun with your server members!
 
-### Contributing
+## Contributing
 
 Contributions are welcome! 
 If you have any ideas, suggestions, or bug reports, please open an [issue](https://github.com/panchi64/gooby/issues) or submit a [pull request](https://github.com/panchi64/gooby/pulls). 
 Make sure to follow the project's code of conduct.
 
-### License
+## License
 This project is licensed under the GNU General Public License v3.0
 
-### Dependencies
+## Dependencies
 - Serenity - A Rust library for the Discord API.
 - Songbird - A Rust library for the Discord voice API.
 - Image - A Rust library for image processing.
 - Rust-OpenAI - A Rust library for interacting with the OpenAI API.
 
-### Contact
+## Contact
 For any questions or inquiries, please create an [issue](https://github.com/panchi64/gooby/issues). I'll take a look at it and respond accordingly.
