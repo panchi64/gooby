@@ -13,7 +13,9 @@ This is a Discord bot built with Rust. It's designed for private server use and 
 ## Installation
 #### Clone the repository:
 
-```git clone https://github.com/yourusername/discord-bot.git```
+```
+git clone https://github.com/yourusername/discord-bot.git
+```
 
 #### Install Rust:
    
@@ -32,7 +34,9 @@ Open the `config.toml` file and enter your Discord bot token and other necessary
 
 #### Run the bot:
 
-```./target/release/discord-bot```
+```
+./target/release/discord-bot
+```
 
 ## Usage
 
