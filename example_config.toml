@@ -1,0 +1,24 @@
+# Discord API details
+discord.api.key = 'INSERT YOUR BOT TOKEN HERE' # Same as the discord token
+discord.api.version = '10'
+discord.api.portal = 'https://discord.com/api/v /' # The 'v ' is important, it gets modified later
+discord.server.id = 'INSERT GUILD ID HERE' # The bot will only ever work on the guild IDs here. Separate with commas
+
+# OpenAI API details for custom messaging/engagement
+openai.api.key = ''
+openai.api.version = '1'
+openai.api.portal = 'https://api.openai.com/v /chat/completions' # The 'v ' is important, it gets modified later
+openai.api.chat.model = 'gpt-3.5-turbo-0125' # Make sure to look at model pricing -> https://openai.com/pricing
+
+# Spotify API details for audio
+spotify.api.key = ''
+spotify.api.portal = 'https://api.spotify.com/v /'
+spotify.api.version = '1'
+spotify.api.portal.search = 'search'
+spotify.api.portal.tracks = 'tracks/{id}'
+spotify.api.portal.playlists = 'playlists/{playlist_id}'
+
+# YouTube API details for audio
+youtube.api.key = 'INSERT YOUTUBE API KEY HERE'
+youtube.api.portal = 'https://www.googleapis.com/youtube/v ' # The 'v ' is important, it gets modified later
+youtube.api.version = '3'

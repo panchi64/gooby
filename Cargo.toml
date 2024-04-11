@@ -1,5 +1,5 @@
 [package]
-name = "discord-bot"
+name = "gooby-discord-bot"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 serenity = "0.12.1"
+poise = "0.6.1"
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 songbird = "0.4.1"
 image = "0.25.1"
 async-openai = "0.20.0"
+config = "0.14.0"
