@@ -1,5 +1,5 @@
-# Gooby - The Discord Bot
-This is a Discord bot built with Rust. It's designed for private server use and comes with various entertaining and useful features to enhance your server experience. From creating polls and playing music to generating AI images and custom memes, Gooby has got you covered!
+# 🚧 Gooby - A Rust Discord Bot 🚧
+This is a WIP Discord bot built with Rust. It's designed for private server use and comes with various entertaining and useful features to enhance your server experience. From creating polls and playing music to generating AI images and custom memes, Gooby has got you covered!
 
 ## Features
 - **Polls**: Easily create polls for your server members to vote on.
