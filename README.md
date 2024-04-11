@@ -64,7 +64,7 @@ This project is licensed under the GNU General Public License v3.0
 - Serenity - A Rust library for the Discord API.
 - Songbird - A Rust library for the Discord voice API.
 - Image - A Rust library for image processing.
-- Rust-OpenAI - A Rust library for interacting with the OpenAI API.
+- Async-OpenAI - A Rust library for interacting with the OpenAI API.
 
 ## Contact
 For any questions or inquiries, please create an [issue](https://github.com/panchi64/gooby/issues). I'll take a look at it and respond accordingly.
