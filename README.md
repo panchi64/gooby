@@ -1,5 +1,5 @@
 # 🚧 Gooby - A Rust Discord Bot 🚧
-This is a WIP Discord bot built with Rust. It's designed for private server use and comes with various entertaining and useful features to enhance your server experience. From creating polls and playing music to generating AI images and custom memes, Gooby has got you covered!
+This is a WIP Discord bot built with Rust. It's designed for private server use and comes with various entertaining and useful features to enhance your server experience. From mocking user messages and playing music to generating AI images and custom memes, Gooby has got you covered!
 
 ## Features
 - ~~**Polls**: Easily create polls for your server members to vote on.~~ (Implemented into the Discord client)
@@ -66,8 +66,7 @@ This project is licensed under the GNU General Public License v3.0
 - [Image](https://github.com/image-rs/image) - Image processing
 - [Async-OpenAI](https://github.com/64bit/async-openai) - OpenAI API
 - [Poise](https://github.com/serenity-rs/poise) - Discord Commands
-- [Config](https://github.com/mehcode/config-rs) - `config.toml` ease-of-use
-- 
+- [Serde](https://github.com/serde-rs/serde) & [TOML](https://github.com/toml-rs/toml) - `config.toml` ease-of-use
 
 ## Contact
 For any questions or inquiries, please create an [issue](https://github.com/panchi64/gooby/issues). I'll take a look at it and respond accordingly.
