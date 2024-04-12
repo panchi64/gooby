@@ -1,30 +1,30 @@
 use poise::Command;
-use crate::{Data, Error};
+use crate::{UserData, Error};
 
-pub(crate) fn ping() -> Command<Data, Error> {
+pub(crate) fn ping() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn roll() -> Command<Data, Error> {
+pub(crate) fn roll() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn play() -> Command<Data, Error> {
+pub(crate) fn play() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn generate() -> Command<Data, Error> {
+pub(crate) fn generate() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn mock() -> Command<Data, Error> {
+pub(crate) fn mock() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn report() -> Command<Data, Error> {
+pub(crate) fn report() -> Command<UserData, Error> {
     todo!()
 }
 
-pub(crate) fn meme() -> Command<Data, Error> {
+pub(crate) fn meme() -> Command<UserData, Error> {
     todo!()
 }
