@@ -922,6 +922,7 @@ dependencies = [
  "async-openai",
  "image",
  "poise",
+ "rand",
  "serde",
  "serenity",
  "songbird",

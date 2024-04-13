@@ -14,3 +14,4 @@ image = "0.25.1"
 async-openai = "0.20.0"
 serde = { version = "1.0.197", features = ["derive"] }
 toml = "0.8.12"
+rand = "0.8.5"
