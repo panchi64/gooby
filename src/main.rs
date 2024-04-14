@@ -41,6 +41,13 @@ async fn main() {
         ],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("!".into()),
+            additional_prefixes: vec![
+                poise::Prefix::Literal("-"),
+                poise::Prefix::Literal("$"),
+                poise::Prefix::Literal("?"),
+            ],
+            case_insensitive_commands: true,
+            execute_untracked_edits: true,
             ..Default::default()
         },
         on_error: |error| Box::pin(on_error(error)),
