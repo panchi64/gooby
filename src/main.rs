@@ -32,10 +32,10 @@ async fn main() {
     let options = poise::FrameworkOptions {
         commands: vec![
             commands::ping(),
-            commands::roll(),
+            // commands::roll(),
             commands::play(),
             commands::generate(),
-            commands::mock(),
+            commands::mock_user(),
             commands::report(),
             commands::meme(),
         ],
@@ -71,7 +71,7 @@ async fn main() {
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
-    let mut client = serenity::Client::builder(&config.discord.api.key, intents)
+    let mut client = serenity::Client::builder(&config.discord.api_key, intents)
         .framework(framework)
         .await
         .expect("Err creating client");
