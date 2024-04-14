@@ -32,12 +32,12 @@ async fn main() {
     let options = poise::FrameworkOptions {
         commands: vec![
             commands::ping(),
-            // commands::roll(),
-            commands::play(),
-            commands::generate(),
+            commands::dice_roll(),
+            // commands::play(),
+            // commands::generate(),
             commands::mock_user(),
-            commands::report(),
-            commands::meme(),
+            // commands::report(),
+            // commands::meme(),
         ],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("!".into()),

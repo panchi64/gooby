@@ -12,20 +12,20 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
 /// Roll dice command
 #[poise::command(slash_command)]
-pub async fn roll(
+pub async fn dice_roll(
     ctx: Context<'_>,
-    #[description = "Number of dice"] num_dice: u32,
-    #[description = "Number of sides"] num_sides: u32,
+    #[description = "Number of dice"] dice_amount: u32,
+    #[description = "Number of sides"] dice_type: u32,
 ) -> Result<(), Error> {
     let mut rng = rand::rngs::StdRng::from_entropy();
-    let rolls: Vec<u32> = (0..num_dice)
-        .map(|_| rng.gen_range(1..=num_sides))
+    let rolls: Vec<u32> = (0..dice_amount)
+        .map(|_| rng.gen_range(1..=dice_type))
         .collect();
     let total: u32 = rolls.iter().sum();
 
     ctx.say(format!(
-        "Rolled {} dice with {} sides each:\n{:?}\nTotal: {}",
-        num_dice, num_sides, rolls, total
+        "Rolled {}-d{}\n**Total: {}**\n*{:?}*",
+        dice_amount, dice_type, total, rolls
     ))
     .await?;
     Ok(())
