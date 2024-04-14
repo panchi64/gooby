@@ -68,7 +68,8 @@ async fn main() {
         })
         .build();
 
-    let intents = serenity::GatewayIntents::non_privileged();
+    let intents =
+        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = serenity::Client::builder(&config.discord.api_key, intents)
         .framework(framework)
