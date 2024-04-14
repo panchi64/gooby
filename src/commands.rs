@@ -1,7 +1,9 @@
 use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
+use poise::Modal;
 use rand::{Rng, SeedableRng};
 use serenity::all::{CreateMessage, GetMessages, Mentionable};
+use std::time::Duration;
 
 /// Ping command
 #[poise::command(slash_command)]
@@ -11,7 +13,7 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 /// Roll dice command
-#[poise::command(slash_command)]
+#[poise::command(prefix_command, slash_command, rename = "roll")]
 pub async fn dice_roll(
     ctx: Context<'_>,
     #[description = "Number of dice"] dice_amount: u32,
@@ -110,19 +112,47 @@ fn mock_text(text: &str) -> String {
 }
 
 /// Report command
-#[poise::command(slash_command)]
+// Bless the soul of whoever wrote this
+// https://github.com/chrisliebaer/kitmatheinfo-bot/blob/f83786cd24ca41523edbd9bb0a5cc0868ecdbd40/src/moderation.rs#L26
+// without you I would have never understood how the modal execution would work.
+// It was so hard to even find a couple of things for it.
+#[poise::command(context_menu_command = "Report", ephemeral)]
 pub async fn report(
     ctx: Context<'_>,
-    #[description = "User to report"] user: serenity::User,
-    #[description = "Reason for the report"] reason: String,
+    #[description = "Report a user's message"] msg: serenity::Message,
 ) -> Result<(), Error> {
-    ctx.say(format!(
-        "Reported user {} for reason: {}",
-        user.mention(),
-        reason
-    ))
+    let app_ctx = match ctx {
+        Context::Application(ctx) => ctx,
+        Context::Prefix(_) => {
+            unreachable!("This command is only available as a context menu command.")
+        }
+    };
+
+    let report = poise::execute_modal::<_, _, ReportReasonModal>(
+        app_ctx,
+        None,
+        Some(Duration::from_secs(120)),
+    )
     .await?;
+
+    let report_summary: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tUser: {}{}\n\tSubmitted at: {}\n\tReason: {}\n",
+        msg.content, msg.author.name, msg.author, msg.timestamp, report.unwrap().reason);
+
+    println!("{}", report_summary);
+
+    ctx.say("Goobstah got ur report. Zanks!").await?;
+
     Ok(())
+}
+
+#[derive(Debug, Modal)]
+#[name = "Report Reason"]
+struct ReportReasonModal {
+    #[name = "Report"]
+    #[placeholder = "Enter the reason for the report"]
+    #[min_length = 1]
+    #[max_length = 500]
+    reason: String,
 }
 
 /// Meme generation command

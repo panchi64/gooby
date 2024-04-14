@@ -36,7 +36,7 @@ async fn main() {
             // commands::play(),
             // commands::generate(),
             commands::mock_user(),
-            // commands::report(),
+            commands::report(),
             // commands::meme(),
         ],
         prefix_options: poise::PrefixFrameworkOptions {
@@ -53,12 +53,19 @@ async fn main() {
         on_error: |error| Box::pin(on_error(error)),
         pre_command: |ctx| {
             Box::pin(async move {
-                println!("Executing command {}...", ctx.command().qualified_name);
+                println!(
+                    "Got da \"{}\" command. Gettin' right on it...",
+                    ctx.command().qualified_name
+                );
             })
         },
+
         post_command: |ctx| {
             Box::pin(async move {
-                println!("Executed command {}!", ctx.command().qualified_name);
+                println!(
+                    "\"{}\" command is done big boss!",
+                    ctx.command().qualified_name
+                );
             })
         },
         ..Default::default()
@@ -81,7 +88,7 @@ async fn main() {
     let mut client = serenity::Client::builder(&config.discord.api_key, intents)
         .framework(framework)
         .await
-        .expect("Err creating client");
+        .expect("Error creating client");
 
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
