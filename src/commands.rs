@@ -1,8 +1,12 @@
+use crate::config;
 use crate::{Context, Error};
+use ::serenity::all::colours::css::WARNING;
+use ::serenity::all::CreateEmbed;
 use poise::serenity_prelude as serenity;
 use poise::Modal;
 use rand::{Rng, SeedableRng};
 use serenity::all::{CreateMessage, GetMessages, Mentionable};
+use serenity::model::Permissions;
 use std::time::Duration;
 
 /// Ping command
@@ -114,8 +118,8 @@ fn mock_text(text: &str) -> String {
 /// Report command
 // Bless the soul of whoever wrote this
 // https://github.com/chrisliebaer/kitmatheinfo-bot/blob/f83786cd24ca41523edbd9bb0a5cc0868ecdbd40/src/moderation.rs#L26
-// without you I would have never understood how the modal execution would work.
-// It was so hard to even find a couple of things for it.
+// without you I would have never understood how the modal execution works.
+// It was so hard to even find useful documentation for it.
 #[poise::command(context_menu_command = "Report", ephemeral)]
 pub async fn report(
     ctx: Context<'_>,
@@ -135,10 +139,48 @@ pub async fn report(
     )
     .await?;
 
-    let report_summary: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tUser: {}{}\n\tSubmitted at: {}\n\tReason: {}\n",
+    let report_summary: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
         msg.content, msg.author.name, msg.author, msg.timestamp, report.unwrap().reason);
+    let report_embed = CreateEmbed::new()
+        .title("Report")
+        .description(report_summary.trim_matches('\t'));
 
     println!("{}", report_summary);
+
+    let config = config::load_config();
+    let report_channel_id = config.discord.report_channel_id;
+
+    if !report_channel_id.is_empty() {
+        let channel_id = serenity::ChannelId::new(report_channel_id.parse().unwrap());
+        channel_id
+            .send_message(
+                &ctx.serenity_context().http,
+                CreateMessage::new().add_embed(report_embed),
+            )
+            .await?;
+    } else {
+        // TODO: Finish the permissions check logic
+        let guild_id = ctx.guild_id().unwrap();
+        let guild = guild_id.to_guild(&ctx.serenity_context()).unwrap();
+        for member in guild.members.values() {
+            if let Ok(permissions) = member.permissions(&ctx.serenity_context()) {
+                if permissions {
+                    member
+                        .user
+                        .dm(&ctx.serenity_context().http, |m| {
+                            m.content(&report_summary.trim_matches('\t'))
+                        })
+                        .await?;
+                }
+            }
+        }
+    }
+
+    msg.react(
+        &ctx.serenity_context().http,
+        serenity::ReactionType::from('⚠'),
+    )
+    .await?;
 
     ctx.say("Goobstah got ur report. Zanks!").await?;
 

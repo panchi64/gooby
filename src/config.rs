@@ -16,6 +16,7 @@ pub struct DiscordConfig {
     pub api_version: String,
     pub api_portal: String,
     pub server_id: String,
+    pub report_channel_id: String,
 }
 
 #[derive(Deserialize)]

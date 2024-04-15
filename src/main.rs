@@ -9,9 +9,8 @@ type Context<'a> = poise::Context<'a, UserData, Error>;
 pub struct UserData {}
 
 async fn on_error(error: poise::FrameworkError<'_, UserData, Error>) {
-    // Custom error handler
-    // There are many errors that can occur, so only handle the ones we want customized.
-    // Forward the rest to the default handler
+    // Only take in errors we want customized.
+    // The rest are forwarded to the default handler.
     match error {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
         poise::FrameworkError::Command { error, ctx, .. } => {
@@ -75,7 +74,10 @@ async fn main() {
         .options(options)
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
-                println!("Logged in as {}", _ready.user.name);
+                println!(
+                    "*yaaawwwnnn* Alrighty! {} is logged in and ready to go boss.",
+                    _ready.user.name
+                );
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(UserData {})
             })

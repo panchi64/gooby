@@ -4,6 +4,7 @@ api_key = 'INSERT YOUR BOT TOKEN HERE' # Same as the discord token
 api_version = '10'
 api_portal = 'https://discord.com/api/v /' # The 'v ' is important, it gets modified later
 server_id = 'INSERT GUILD ID HERE' # The bot will only ever work on the guild IDs here. Separate with commas
+report_channel_id = '' # Leave empty if you want Gooby to DM the people with manage members permissions
 
 # OpenAI API details for custom messaging/engagement
 [openai]
