@@ -2,6 +2,7 @@ mod commands;
 mod config;
 
 use poise::serenity_prelude as serenity;
+use serenity::prelude::GatewayIntents;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, UserData, Error>;
@@ -85,7 +86,7 @@ async fn main() {
         .build();
 
     let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+        GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT | GatewayIntents::DIRECT_MESSAGES;
 
     let mut client = serenity::Client::builder(&config.discord.api_key, intents)
         .framework(framework)

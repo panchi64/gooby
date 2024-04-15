@@ -1,7 +1,6 @@
 use crate::config;
 use crate::{Context, Error};
-use ::serenity::all::colours::css::WARNING;
-use ::serenity::all::CreateEmbed;
+use serenity::all::{Color, CreateEmbed};
 use poise::serenity_prelude as serenity;
 use poise::Modal;
 use rand::{Rng, SeedableRng};
@@ -33,7 +32,7 @@ pub async fn dice_roll(
         "Rolled {}-d{}\n**Total: {}**\n*{:?}*",
         dice_amount, dice_type, total, rolls
     ))
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -99,7 +98,7 @@ pub async fn mock_user(
         "No recent message found for user {}",
         user.mention()
     ))
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -118,7 +117,7 @@ fn mock_text(text: &str) -> String {
 /// Report command
 // Bless the soul of whoever wrote this
 // https://github.com/chrisliebaer/kitmatheinfo-bot/blob/f83786cd24ca41523edbd9bb0a5cc0868ecdbd40/src/moderation.rs#L26
-// without you I would have never understood how the modal execution works.
+// without you, I would have never understood how the modal execution works.
 // It was so hard to even find useful documentation for it.
 #[poise::command(context_menu_command = "Report", ephemeral)]
 pub async fn report(
@@ -137,53 +136,99 @@ pub async fn report(
         None,
         Some(Duration::from_secs(120)),
     )
-    .await?;
+        .await?;
 
-    let report_summary: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
-        msg.content, msg.author.name, msg.author, msg.timestamp, report.unwrap().reason);
-    let report_embed = CreateEmbed::new()
-        .title("Report")
-        .description(report_summary.trim_matches('\t'));
-
-    println!("{}", report_summary);
+    let terminal_report: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
+                                          &msg.content, &msg.author.name, &msg.author, &msg.timestamp, &report.unwrap().reason);
+    
+    ctx.defer().await?;
+    
+    let report_embed_msg = CreateEmbed::new()
+        .title("Reported Message")
+        .description("A  user message has been reported. Details below")
+        .fields(vec![
+            ("Content", msg.content.to_string(), true),
+            ("Original Message",
+             format!("[Jump to Message](https://discord.com/channels/{:?}/{}/{})",
+                &ctx.guild_id().unwrap().get(),
+                &msg.channel_id,
+                &msg.id)
+             ,true),
+        ])
+        .fields(vec![
+            ("Sent by", msg.author.to_string().clone(), true),
+            ("Message Timestamp", format!("<t:{}>", &msg.timestamp.timestamp()), true),
+        ])
+        .color(Color::GOLD);
+    println!("{}", terminal_report);
 
     let config = config::load_config();
     let report_channel_id = config.discord.report_channel_id;
 
-    if !report_channel_id.is_empty() {
-        let channel_id = serenity::ChannelId::new(report_channel_id.parse().unwrap());
-        channel_id
-            .send_message(
-                &ctx.serenity_context().http,
-                CreateMessage::new().add_embed(report_embed),
-            )
-            .await?;
-    } else {
-        // TODO: Finish the permissions check logic
-        let guild_id = ctx.guild_id().unwrap();
-        let guild = guild_id.to_guild(&ctx.serenity_context()).unwrap();
-        for member in guild.members.values() {
-            if let Ok(permissions) = member.permissions(&ctx.serenity_context()) {
-                if permissions {
-                    member
-                        .user
-                        .dm(&ctx.serenity_context().http, |m| {
-                            m.content(&report_summary.trim_matches('\t'))
-                        })
-                        .await?;
+    let send_report = async {
+        if !report_channel_id.is_empty() {
+            let channel_id = serenity::ChannelId::new(report_channel_id.parse().unwrap());
+            channel_id
+                .send_message(
+                    &ctx.serenity_context().http,
+                    CreateMessage::new().add_embed(report_embed_msg),
+                )
+                .await?;
+        } else {
+            let guild_id = ctx.guild_id().unwrap();
+            println!("Guild ID: {}", guild_id);
+
+            match guild_id.to_partial_guild(&ctx.serenity_context().http).await {
+                Ok(guild) => {
+                    println!("Fetched partial guild: {}", guild.name);
+
+                    match guild.members(&ctx.serenity_context().http, None, None).await {
+                        Ok(members) => {
+                            println!("Fetched {} members", members.len());
+
+                            for member in members {
+                                if let Ok(permissions) = member.permissions(ctx.serenity_context()) {
+                                    if permissions.contains(Permissions::ADMINISTRATOR | Permissions::KICK_MEMBERS | Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES) {
+                                        println!("Attempting to DM moderator: {}", member.user.tag());
+
+                                        if let Err(err) = member.user.dm(&ctx.serenity_context().http, CreateMessage::new().content("Hiya! I've received a report for a message. Here's the report:").add_embed(report_embed_msg.clone())).await {
+                                            println!("Failed to send DM to moderator {}: {:?}", member.user.tag(), err);
+                                        } else {
+                                            println!("DM sent to moderator: {}", member.user.tag());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Err(err) => {
+                            println!("Failed to fetch members: {:?}", err);
+                            return Err(Box::new(err));
+                        }
+                    }
+                }
+                Err(err) => {
+                    println!("Failed to fetch partial guild: {:?}", err);
+                    return Err(Box::new(err));
                 }
             }
         }
+
+        msg.react(
+            &ctx.serenity_context().http,
+            serenity::ReactionType::from('⚠'),
+        )
+            .await?;
+
+        ctx.say("Goobstah got ur report. Zanks!").await?;
+
+        Ok(())
+    };
+
+    if let Err(err) = send_report.await {
+        eprintln!("Error while sending report: {:?}", err);
+        ctx.say("Yowsaz I fumbled. Gonna go check what it was. Try again in a bit!").await?;
     }
-
-    msg.react(
-        &ctx.serenity_context().http,
-        serenity::ReactionType::from('⚠'),
-    )
-    .await?;
-
-    ctx.say("Goobstah got ur report. Zanks!").await?;
-
+    
     Ok(())
 }
 
