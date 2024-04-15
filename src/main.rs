@@ -2,6 +2,7 @@ mod commands;
 mod config;
 
 use poise::serenity_prelude as serenity;
+use serenity::prelude::GatewayIntents;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, UserData, Error>;
@@ -9,9 +10,8 @@ type Context<'a> = poise::Context<'a, UserData, Error>;
 pub struct UserData {}
 
 async fn on_error(error: poise::FrameworkError<'_, UserData, Error>) {
-    // Custom error handler
-    // There are many errors that can occur, so only handle the ones we want customized.
-    // Forward the rest to the default handler
+    // Only take in errors we want customized.
+    // The rest are forwarded to the default handler.
     match error {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
         poise::FrameworkError::Command { error, ctx, .. } => {
@@ -32,26 +32,40 @@ async fn main() {
     let options = poise::FrameworkOptions {
         commands: vec![
             commands::ping(),
-            // commands::roll(),
-            commands::play(),
-            commands::generate(),
+            commands::dice_roll(),
+            // commands::play(),
+            // commands::generate(),
             commands::mock_user(),
             commands::report(),
-            commands::meme(),
+            // commands::meme(),
         ],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("!".into()),
+            additional_prefixes: vec![
+                poise::Prefix::Literal("-"),
+                poise::Prefix::Literal("$"),
+                poise::Prefix::Literal("?"),
+            ],
+            case_insensitive_commands: true,
+            execute_untracked_edits: true,
             ..Default::default()
         },
         on_error: |error| Box::pin(on_error(error)),
         pre_command: |ctx| {
             Box::pin(async move {
-                println!("Executing command {}...", ctx.command().qualified_name);
+                println!(
+                    "Got da \"{}\" command. Gettin' right on it...",
+                    ctx.command().qualified_name
+                );
             })
         },
+
         post_command: |ctx| {
             Box::pin(async move {
-                println!("Executed command {}!", ctx.command().qualified_name);
+                println!(
+                    "\"{}\" command is done big boss!",
+                    ctx.command().qualified_name
+                );
             })
         },
         ..Default::default()
@@ -61,7 +75,10 @@ async fn main() {
         .options(options)
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
-                println!("Logged in as {}", _ready.user.name);
+                println!(
+                    "*yaaawwwnnn* Alrighty! {} is logged in and ready to go boss.",
+                    _ready.user.name
+                );
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(UserData {})
             })
@@ -69,12 +86,12 @@ async fn main() {
         .build();
 
     let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+        GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT | GatewayIntents::DIRECT_MESSAGES;
 
     let mut client = serenity::Client::builder(&config.discord.api_key, intents)
         .framework(framework)
         .await
-        .expect("Err creating client");
+        .expect("Error creating client");
 
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
