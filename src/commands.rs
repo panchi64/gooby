@@ -8,13 +8,6 @@ use serenity::all::{CreateMessage, GetMessages, Mentionable};
 use serenity::model::Permissions;
 use std::time::Duration;
 
-/// Ping command
-#[poise::command(slash_command)]
-pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("Pong!").await?;
-    Ok(())
-}
-
 /// Roll dice command
 #[poise::command(prefix_command, slash_command, rename = "roll")]
 pub async fn dice_roll(

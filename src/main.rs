@@ -31,7 +31,6 @@ async fn main() {
 
     let options = poise::FrameworkOptions {
         commands: vec![
-            commands::ping(),
             commands::dice_roll(),
             // commands::play(),
             // commands::generate(),
