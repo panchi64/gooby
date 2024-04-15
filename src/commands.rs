@@ -80,7 +80,7 @@ pub async fn mock_user(
             for message in messages {
                 if message.author.id == user.id {
                     let mocked_text = mock_text(&message.content);
-                    ctx.say(format!("{}", mocked_text)).await?;
+                    ctx.say(mocked_text.to_string()).await?;
                     channel_id
                         .send_message(
                             &ctx.serenity_context().http,
@@ -137,27 +137,28 @@ pub async fn report(
         Some(Duration::from_secs(120)),
     )
         .await?;
-
-    let terminal_report: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
-                                          &msg.content, &msg.author.name, &msg.author, &msg.timestamp, &report.unwrap().reason);
     
     ctx.defer().await?;
-    
+
+    let terminal_report: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
+                                          &msg.content, &msg.author.name, &msg.author, &msg.timestamp, &report.as_ref().unwrap().reason);
+
     let report_embed_msg = CreateEmbed::new()
         .title("Reported Message")
         .description("A  user message has been reported. Details below")
         .fields(vec![
             ("Content", msg.content.to_string(), true),
-            ("Original Message",
-             format!("[Jump to Message](https://discord.com/channels/{:?}/{}/{})",
-                &ctx.guild_id().unwrap().get(),
-                &msg.channel_id,
-                &msg.id)
-             ,true),
+            ("Sent by", msg.author.to_string().clone(), true),
         ])
         .fields(vec![
-            ("Sent by", msg.author.to_string().clone(), true),
             ("Message Timestamp", format!("<t:{}>", &msg.timestamp.timestamp()), true),
+            ("Original Message",
+             format!("[Jump to Message](https://discord.com/channels/{:?}/{}/{})",
+                     &ctx.guild_id().unwrap().get(),
+                     &msg.channel_id,
+                     &msg.id)
+             ,true),
+            ("Reason", report.clone().unwrap().reason, false)
         ])
         .color(Color::GOLD);
     println!("{}", terminal_report);
@@ -228,11 +229,11 @@ pub async fn report(
         eprintln!("Error while sending report: {:?}", err);
         ctx.say("Yowsaz I fumbled. Gonna go check what it was. Try again in a bit!").await?;
     }
-    
+
     Ok(())
 }
 
-#[derive(Debug, Modal)]
+#[derive(Debug, Modal, Clone)]
 #[name = "Report Reason"]
 struct ReportReasonModal {
     #[name = "Report"]
