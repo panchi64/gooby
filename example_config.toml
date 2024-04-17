@@ -1,4 +1,4 @@
-# Discord API details
+# Discord api details
 [discord]
 api_key = 'INSERT YOUR BOT TOKEN HERE' # Same as the discord token
 api_version = '10'
@@ -6,14 +6,14 @@ api_portal = 'https://discord.com/api/v /' # The 'v ' is important, it gets modi
 server_id = 'INSERT GUILD ID HERE' # The bot will only ever work on the guild IDs here. Separate with commas
 report_channel_id = '' # Leave empty if you want Gooby to DM the people with manage members permissions
 
-# OpenAI API details for custom messaging/engagement
+# OpenAI api details for custom messaging/engagement
 [openai]
 api_key = 'INSERT OPENAI API KEY HERE'
 api_version = '1'
 api_portal = 'https://api.openai.com/v /chat/completions' # The 'v ' is important, it gets modified later
 api_chat_model = 'gpt-3.5-turbo-0125' # Make sure to look at model pricing -> https://openai.com/pricing
 
-# Spotify API details for audio
+# Spotify api details for audio
 [spotify]
 api_key = 'INSERT SPOTIFY API KEY HERE'
 api_portal = 'https://api.spotify.com/v /'
@@ -22,7 +22,7 @@ api_portal_search = 'search'
 api_portal_tracks = 'tracks/{id}'
 api_portal_playlists = 'playlists/{playlist_id}'
 
-# YouTube API details for audio
+# YouTube api details for audio
 [youtube]
 api_key = 'INSERT YOUTUBE API KEY HERE'
 api_portal = 'https://www.googleapis.com/youtube/v ' # The 'v ' is important, it gets modified later

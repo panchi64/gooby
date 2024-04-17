@@ -923,6 +923,7 @@ dependencies = [
  "image",
  "poise",
  "rand",
+ "regex",
  "serde",
  "serenity",
  "songbird",

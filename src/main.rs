@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod api;
 
 use poise::serenity_prelude as serenity;
 use serenity::prelude::GatewayIntents;
@@ -32,7 +33,7 @@ async fn main() {
     let options = poise::FrameworkOptions {
         commands: vec![
             commands::dice_roll(),
-            // commands::play(),
+            commands::play(),
             // commands::generate(),
             commands::mock_user(),
             commands::report(),

@@ -1,12 +1,16 @@
 use crate::config;
 use crate::{Context, Error};
+use crate::api::spotify;
+use crate::api::youtube;
+
 use serenity::all::{Color, CreateEmbed};
-use poise::serenity_prelude as serenity;
+use poise::{CreateReply, serenity_prelude as serenity};
 use poise::Modal;
 use rand::{Rng, SeedableRng};
 use serenity::all::{CreateMessage, GetMessages, Mentionable};
 use serenity::model::Permissions;
 use std::time::Duration;
+use regex::Regex;
 
 /// Roll dice command
 #[poise::command(prefix_command, slash_command, rename = "roll")]
@@ -30,12 +34,32 @@ pub async fn dice_roll(
 }
 
 /// Play music command
-#[poise::command(slash_command)]
+#[poise::command(slash_command, prefix_command)]
 pub async fn play(
     ctx: Context<'_>,
     #[description = "YouTube or Spotify URL"] url: String,
 ) -> Result<(), Error> {
-    ctx.say(format!("Playing music from: {}", url)).await?;
+
+    let is_url: bool = !url.is_empty() &&
+        Regex::new(
+            r"(https?://)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)"
+        ).unwrap()
+        .is_match(&url);
+
+    if !is_url{
+        ctx.defer_ephemeral().await?;
+        ctx.send(
+            CreateReply::default()
+                .content("Whoopsie. Goob can't read that. Gimme a ***link*** to play!")
+                .ephemeral(true)
+        ).await?;
+    } else {
+        ctx.defer().await?;
+        // Parse URL and identify if it's supported
+
+        // Trigger api requests for the platform
+        ctx.say(format!("Playing music from: {}", url)).await?;
+    }
     Ok(())
 }
 
@@ -130,7 +154,7 @@ pub async fn report(
         Some(Duration::from_secs(120)),
     )
         .await?;
-    
+
     ctx.defer().await?;
 
     let terminal_report: String = format!("\n\tReceived a report for the following message:\n\tContent: {}\n\tSender: {} | {}\n\tSubmitted at: {}\n\tReason: {}\n",
@@ -150,8 +174,8 @@ pub async fn report(
                      &ctx.guild_id().unwrap().get(),
                      &msg.channel_id,
                      &msg.id)
-             ,true),
-            ("Reason", report.clone().unwrap().reason, false)
+             , true),
+            ("Reason", report.clone().unwrap().reason, false),
         ])
         .color(Color::GOLD);
     println!("{}", terminal_report);
