@@ -438,7 +438,7 @@ gooby/
 - Addresses users as "esteemed colleagues" or "valued goobers"
 - Provides structured, helpful responses
 
-## Speech Patterns  
+## Speech Patterns
 - "Good day, esteemed colleague!"
 - "That's a goob-cellent business strategy!"
 - "Let me provide some professional goob-vice..."
@@ -460,7 +460,7 @@ gooby/
 - Uses excessive punctuation and caps
 - Everything is AMAZING and GOOB-TASTIC!!!
 
-## Speech Patterns  
+## Speech Patterns
 - "OH WOW!!! That's SUPER GOOB-TASTIC!!!"
 - "I'M SO EXCITED TO HELP YOU, AMAZING GOOBER!!!"
 - "THIS IS THE MOST GOOB-CREDIBLE THING EVER!!! ✨🎉"
@@ -483,7 +483,7 @@ TRIGGER_WORDS = [
 # Personality weights (higher = more likely)
 PERSONALITY_WEIGHTS = {
     'playful': 0.8,
-    'helpful': 0.9, 
+    'helpful': 0.9,
     'punny': 0.7,
     'enthusiastic': 0.6
 }
@@ -561,11 +561,11 @@ class ContextManager:
     def __init__(self, db_path="data/gooby.db"):
         # Customize database location
         self.db_path = db_path
-        
+
     # Modify conversation retention
     MAX_CONTEXT_AGE_DAYS = 30  # Delete old conversations
     MAX_CONTEXT_PER_USER = 100  # Limit per-user history
-    
+
     # Add custom context categories
     CONTEXT_CATEGORIES = {
         'casual': 1.0,      # Normal chat weight
@@ -679,7 +679,7 @@ MEMORY_LIMITS = {
            'response_chance': 0.3
        },
        'server_id_2': {
-           'personality': 'professional', 
+           'personality': 'professional',
            'response_chance': 0.1
        }
    }
@@ -780,7 +780,7 @@ def validate_discord_token(token):
     # Discord bot tokens are 70+ characters
     if len(token) < 70:
         raise ValueError("Invalid Discord token format")
-    
+
     # Should start with bot user ID encoded in base64
     if not re.match(r'^[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{40,}$', token):
         raise ValueError("Discord token format doesn't match expected pattern")
@@ -811,7 +811,7 @@ async def on_message(message):
 # In config.py
 PERMISSION_LEVELS = {
     'owner': [123456789012345678],      # Bot owner user IDs
-    'admin': [234567890123456789],      # Admin user IDs  
+    'admin': [234567890123456789],      # Admin user IDs
     'moderator': [345678901234567890],  # Moderator user IDs
     'trusted': []                       # Trusted users (auto-populated)
 }
@@ -823,7 +823,7 @@ def requires_permission(level='user'):
         if level == 'owner':
             return user_id in PERMISSION_LEVELS['owner']
         elif level == 'admin':
-            return (user_id in PERMISSION_LEVELS['owner'] or 
+            return (user_id in PERMISSION_LEVELS['owner'] or
                    user_id in PERMISSION_LEVELS['admin'])
         # Add more levels as needed
         return True
@@ -858,12 +858,12 @@ ANONYMIZE_LOGS=true             # Remove usernames from logs
 @app_commands.command(name="delete_my_data")
 async def delete_user_data(interaction: discord.Interaction):
     user_id = interaction.user.id
-    
+
     # Delete from database
     context_manager.delete_user_data(user_id)
-    
+
     await interaction.response.send_message(
-        "Your data has been deleted from Gooby's memory! 🗑️", 
+        "Your data has been deleted from Gooby's memory! 🗑️",
         ephemeral=True
     )
 ```
@@ -882,14 +882,14 @@ def sanitize_user_input(text: str) -> str:
     """Clean user input for safety"""
     # Remove potential code injection
     text = re.sub(r'[`\\${}]', '', text)
-    
+
     # Limit length
     if len(text) > 500:
         text = text[:500] + "..."
-    
+
     # Remove excessive whitespace
     text = ' '.join(text.split())
-    
+
     return text
 
 def filter_inappropriate_content(text: str) -> bool:
@@ -900,7 +900,7 @@ def filter_inappropriate_content(text: str) -> bool:
         r'@here',
         # Add more patterns as needed
     ]
-    
+
     for pattern in inappropriate_patterns:
         if re.search(pattern, text, re.IGNORECASE):
             return False
@@ -913,10 +913,10 @@ def filter_ai_response(response: str) -> str:
     """Ensure AI responses are appropriate"""
     # Remove any potential sensitive information
     response = re.sub(r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b', '[REDACTED]', response)
-    
+
     # Remove email addresses
     response = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '[EMAIL]', response)
-    
+
     return response
 ```
 
@@ -938,7 +938,7 @@ def filter_ai_response(response: str) -> str:
 python -c "import discord; print('Token format looks valid')" || echo "Check your Discord token"
 
 # Verify environment loading
-python -c "from config import *; print(f'Loaded token: {DISCORD_TOKEN[:20]}...')" 
+python -c "from config import *; print(f'Loaded token: {DISCORD_TOKEN[:20]}...')"
 
 # Test basic connection
 python -c "
@@ -949,12 +949,12 @@ from config import DISCORD_TOKEN
 async def test_connection():
     intents = discord.Intents.default()
     client = discord.Client(intents=intents)
-    
+
     @client.event
     async def on_ready():
         print(f'Connected as {client.user}')
         await client.close()
-    
+
     try:
         await client.start(DISCORD_TOKEN)
     except discord.errors.LoginFailure:
@@ -995,7 +995,7 @@ curl -X POST http://localhost:1234/v1/chat/completions \
 {
   "choices": [{
     "message": {
-      "role": "assistant", 
+      "role": "assistant",
       "content": "Hello! How can I help you today?"
     }
   }]
@@ -1190,7 +1190,7 @@ tail -50 data/logs/gooby.log
 ### Expected Behavior
 [What should happen]
 
-### Actual Behavior  
+### Actual Behavior
 [What actually happens]
 
 ### Steps to Reproduce
@@ -1266,70 +1266,6 @@ bandit>=1.7  # Security linting
 
 </details>
 
-<details>
-<summary><b>🧪 Testing</b></summary>
-
-**Run Tests**:
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=. --cov-report=html
-
-# Run specific test file
-pytest tests/test_memes.py
-
-# Run tests matching pattern
-pytest -k "test_chat"
-```
-
-**Test Structure**:
-```
-tests/
-├── conftest.py           # Test configuration & fixtures
-├── test_bot.py          # Bot initialization tests
-├── test_chat.py         # Chat functionality tests  
-├── test_memes.py        # Meme generation tests
-├── test_images.py       # Image search tests
-├── test_context.py      # Database/context tests
-└── fixtures/            # Test data files
-    ├── test_memes/
-    └── test_conversations.json
-```
-
-**Example Test**:
-```python
-# tests/test_memes.py
-import pytest
-from utils.image_maker import MemeGenerator
-
-@pytest.fixture
-def meme_generator():
-    return MemeGenerator("assets/templates", "assets/fonts")
-
-@pytest.mark.asyncio
-async def test_meme_creation(meme_generator):
-    """Test basic meme creation"""
-    result = await meme_generator.create_meme(
-        template="drake",
-        top_text="Writing tests", 
-        bottom_text="Skipping tests"
-    )
-    
-    assert result is not None
-    assert result.endswith('.png')
-    assert os.path.exists(result)
-
-def test_template_loading(meme_generator):
-    """Test template discovery"""
-    templates = meme_generator.get_available_templates()
-    assert len(templates) > 0
-    assert "drake" in templates
-```
-
-</details>
-
 ### 📝 Code Style & Standards
 
 <details>
@@ -1372,7 +1308,7 @@ mypy utils/llm_client.py
 [flake8]
 max-line-length = 88
 ignore = E203, W503, E501
-exclude = 
+exclude =
     .git,
     __pycache__,
     venv,
@@ -1390,24 +1326,24 @@ exclude =
 def goobify_text(text: str, intensity: float = 0.7) -> str:
     """
     Transform text with goob puns and personality.
-    
+
     Args:
         text: The input text to goobify
         intensity: How much goob-ness to add (0.0-1.0)
-        
+
     Returns:
         Goobified version of the input text
-        
+
     Raises:
         ValueError: If intensity is not between 0.0 and 1.0
-        
+
     Example:
         >>> goobify_text("That's awesome!")
         "That's goob-some! 🫘"
     """
     if not 0.0 <= intensity <= 1.0:
         raise ValueError("Intensity must be between 0.0 and 1.0")
-        
+
     # Implementation here...
 ```
 
@@ -1416,15 +1352,15 @@ def goobify_text(text: str, intensity: float = 0.7) -> str:
 class MemeGenerator:
     """
     Handles meme creation with templates and text overlay.
-    
+
     This class manages meme templates, font loading, and image
     processing for creating memes with custom text.
-    
+
     Attributes:
         templates_dir: Path to meme template images
         fonts_dir: Path to font files
         available_templates: Dict of loaded template names->paths
-        
+
     Example:
         >>> generator = MemeGenerator("assets/templates", "assets/fonts")
         >>> meme_path = await generator.create_meme(
@@ -1466,17 +1402,17 @@ graph TB
     Bot --> ChatCog[chat.py - AI Chat]
     Bot --> MemeCog[memes.py - Meme Gen]
     Bot --> ImageCog[images.py - Image Search]
-    
+
     ChatCog --> LLMClient[llm_client.py]
     ChatCog --> Context[context.py - Memory]
     MemeCog --> ImageMaker[image_maker.py]
     ImageCog --> ImageSearch[image_search.py]
-    
+
     LLMClient --> LMStudio[LM Studio API]
     Context --> Database[(SQLite DB)]
     ImageMaker --> Templates[Meme Templates]
     ImageSearch --> DuckDuckGo[DuckDuckGo API]
-    
+
     Config[config.py] --> Bot
     Config --> ChatCog
     Config --> MemeCog
@@ -1486,7 +1422,7 @@ graph TB
 **Key Components**:
 
 1. **bot.py**: Main Discord client, event handling, cog loading
-2. **cogs/**: Feature modules (chat, memes, images) 
+2. **cogs/**: Feature modules (chat, memes, images)
 3. **utils/**: Reusable utility classes
 4. **config.py**: Centralized configuration management
 5. **Database**: SQLite for conversation persistence
@@ -1507,13 +1443,13 @@ import discord
 class NewFeatureCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     @app_commands.command(name="newcommand", description="A new goobly command")
     async def new_command(self, interaction: discord.Interaction, parameter: str):
         """Implementation of new command"""
         response = f"Goob-tastic {parameter}, {interaction.user.display_name}! 🫘"
         await interaction.response.send_message(response)
-        
+
     @commands.Cog.listener()
     async def on_some_event(self, event_data):
         """Handle Discord events related to this feature"""
@@ -1528,11 +1464,11 @@ async def setup(bot):
 async def load_cogs():
     cogs = [
         'cogs.chat',
-        'cogs.memes', 
+        'cogs.memes',
         'cogs.images',
         'cogs.new_feature'  # Add your new cog
     ]
-    
+
     for cog in cogs:
         try:
             await bot.load_extension(cog)
@@ -1550,7 +1486,7 @@ import asyncio
 class NewUtility:
     def __init__(self, config_param: str):
         self.config_param = config_param
-        
+
     async def process_data(self, input_data: str) -> Optional[str]:
         """Process data with goobly goodness"""
         # Your implementation here
@@ -1621,13 +1557,13 @@ async def test_new_command():
    ```bash
    git add .
    git commit -m "feat: add amazing new feature
-   
+
    - Implemented goobly new functionality
    - Added comprehensive tests
    - Updated documentation
-   
+
    Closes #123"
-   
+
    git push origin feature/amazing-new-feature
    ```
 
@@ -1730,7 +1666,7 @@ Fixes #67
 
 **Contributors will be recognized in:**
 - 📜 Contributors section in README
-- 🎉 Release notes for their contributions 
+- 🎉 Release notes for their contributions
 - 💬 Discord server hall of fame
 - 🫘 Special "Goobly Contributor" role
 
@@ -1765,7 +1701,7 @@ A: Yes, but only locally in a SQLite database on your machine. No data is sent t
 <summary><b>⚙️ Technical Questions</b></summary>
 
 **Q: What are the minimum system requirements?**
-A: 
+A:
 - **CPU**: 2+ cores recommended
 - **RAM**: 4GB minimum, 8GB+ recommended (for LM Studio)
 - **Storage**: 2GB for bot + model storage (varies by AI model)
@@ -1775,7 +1711,7 @@ A:
 A: Gooby itself can run on a Pi 4, but LM Studio requires x64 architecture. You could run LM Studio on another machine and point Gooby to it via `LM_STUDIO_URL`.
 
 **Q: What AI models work best with Gooby?**
-A: 
+A:
 - **Lightweight**: microsoft/DialoGPT-medium (good for basic hardware)
 - **Balanced**: TheBloke/Llama-2-7B-Chat-GGML (best quality/performance ratio)
 - **High-end**: Any 13B+ parameter model (requires 16GB+ RAM)
