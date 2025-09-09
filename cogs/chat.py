@@ -19,7 +19,7 @@ class ChatCog(commands.Cog):
         self.context_manager = ContextManager()
 
         # Message history for reaction targeting and context
-        self.message_history = deque(maxlen=10)
+        self.message_history = deque(maxlen=Config.CONTEXT_MESSAGE_LIMIT)
 
         # Rate limiting
         self.last_response_time = {}  # channel_id -> timestamp
@@ -110,7 +110,7 @@ class ChatCog(commands.Cog):
                 "context_ending": f"\n\nNew message from {message.author.display_name}: {message.content}\nShould Gooby respond? Reply with [SKIP] or [RESPOND]."
             },
             "response": {
-                "limit": 15,
+                "limit": Config.CONTEXT_MESSAGE_LIMIT,
                 "truncate": None,
                 "include_new_msg": False,
                 "context_ending": f"\n\nRespond to {message.author.display_name}: {message.content}"
@@ -127,6 +127,7 @@ class ChatCog(commands.Cog):
             )
 
             if db_messages:
+                logger.debug(f"Context ({mode}): Using {len(db_messages)} messages from database (limit: {mode_config['limit']})")
                 context = self.context_manager.format_mixed_messages(
                     db_messages,
                     max_messages=mode_config["limit"],
@@ -135,6 +136,7 @@ class ChatCog(commands.Cog):
             else:
                 # Fallback: Use in-memory deque if database is empty/unavailable
                 memory_messages = list(self.message_history)[-mode_config["limit"]:]
+                logger.debug(f"Context ({mode}): Using {len(memory_messages)} messages from memory fallback (limit: {mode_config['limit']})")
                 context = self.context_manager.format_mixed_messages(
                     memory_messages,
                     max_messages=mode_config["limit"],
@@ -145,6 +147,7 @@ class ChatCog(commands.Cog):
             logger.error(f"Failed to get database context, using memory fallback: {e}")
             # Emergency fallback to in-memory deque
             memory_messages = list(self.message_history)[-mode_config["limit"]:]
+            logger.debug(f"Context ({mode}): Using {len(memory_messages)} messages from emergency fallback (limit: {mode_config['limit']})")
             context = self.context_manager.format_mixed_messages(
                 memory_messages,
                 max_messages=mode_config["limit"],
