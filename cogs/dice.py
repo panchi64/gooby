@@ -95,71 +95,76 @@ class DiceCog(commands.Cog):
                           dice_results: List[Tuple[List[int], int]], 
                           modifiers: List[int], total: int) -> discord.Embed:
         """
-        Format the dice roll results into a nice Discord embed
+        Format the dice roll results into a clean, readable Discord embed
         """
         
         embed = discord.Embed(
-            title="🎲 Dice Roll Results",
+            title="🎲 Dice Roll",
             color=0x7289da,
-            description=f"**Expression:** `{expression}`"
+            description=f"`{expression}`"
         )
         
-        # Build calculation breakdown
-        calculation_parts = []
-        individual_rolls = []
-        
-        # Add dice group results
-        for i, ((count, sides), (rolls, group_total)) in enumerate(zip(dice_groups, dice_results)):
-            if count == 1:
-                calculation_parts.append(str(group_total))
-                individual_rolls.append(f"**d{sides}:** {rolls[0]}")
-            else:
-                calculation_parts.append(f"({' + '.join(map(str, rolls))})")
-                individual_rolls.append(f"**{count}d{sides}:** {rolls}")
-        
-        # Add modifiers
-        for modifier in modifiers:
-            if modifier >= 0:
-                calculation_parts.append(f"+{modifier}")
-            else:
-                calculation_parts.append(str(modifier))
-        
-        # Create calculation string
-        calculation = " ".join(calculation_parts)
-        if len(calculation) > 1000:  # Discord embed field limit
-            calculation = calculation[:997] + "..."
-        
+        # Main result - most prominent
         embed.add_field(
-            name="🧮 Calculation", 
-            value=f"`{calculation} = {total}`",
+            name="🎯 **Result**",
+            value=f"## {total}",
             inline=False
         )
         
-        # Show individual rolls if not too many
-        if len(individual_rolls) <= 10 and len(str(individual_rolls)) < 800:
-            rolls_text = "\n".join(individual_rolls)
+        # Show breakdown only if there are multiple parts
+        if len(dice_groups) > 1 or modifiers:
+            calculation_parts = []
+            
+            for (count, sides), (rolls, group_total) in zip(dice_groups, dice_results):
+                if count == 1:
+                    calculation_parts.append(str(group_total))
+                else:
+                    calculation_parts.append(f"({'+'.join(map(str, rolls))})")
+            
+            # Add modifiers
+            for modifier in modifiers:
+                if modifier >= 0:
+                    calculation_parts.append(f"+{modifier}")
+                else:
+                    calculation_parts.append(str(modifier))
+            
+            calculation = " ".join(calculation_parts) + f" = **{total}**"
             embed.add_field(
-                name="🎯 Individual Rolls", 
-                value=rolls_text,
+                name="📊 Breakdown",
+                value=calculation,
+                inline=False
+            )
+        
+        # Show individual dice only when helpful (multiple dice, not too many)
+        if len(dice_groups) == 1 and 2 <= dice_groups[0][0] <= 8:
+            count, sides = dice_groups[0]
+            rolls, _ = dice_results[0]
+            
+            # Format rolls nicely
+            roll_display = []
+            for roll in rolls:
+                if roll == sides:
+                    roll_display.append(f"**{roll}** ⭐")  # Max roll
+                elif roll == 1 and sides > 1:
+                    roll_display.append(f"**{roll}** 💔")  # Min roll
+                else:
+                    roll_display.append(str(roll))
+            
+            embed.add_field(
+                name=f"🎲 {count}d{sides} Rolls",
+                value=", ".join(roll_display),
                 inline=True
             )
         
-        # Final result
-        embed.add_field(
-            name="🏆 Total", 
-            value=f"**{total}**",
-            inline=True
-        )
-        
-        # Add some Gooby personality
+        # Simple Gooby personality
         if total == 1:
-            footer_text = "Ooof, that's gooby luck for ya! 🍀"
-        elif total >= 100:
-            footer_text = "Holy goob! That's a big number! 🎉"
+            footer_text = "Ooof, that's rough goober! 🍀"
+        elif total >= 50:
+            footer_text = "Holy goob! Big numbers! 🎉"
         elif total <= 5:
-            footer_text = "Not exactly goob-tastic, but hey, still counts! 📉"
+            footer_text = "Not exactly goob-tier, but hey! 📉"
         else:
-            footer_text = "Another goob-solutely calculated roll! 🎲"
+            footer_text = "Another goob-solutely random roll! 🎲"
             
         embed.set_footer(text=footer_text)
         
