@@ -1,7 +1,8 @@
 import aiohttp
 import asyncio
 import logging
-from typing import List, Dict, Optional
+import base64
+from typing import List, Dict, Optional, Union
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -24,12 +25,46 @@ class LMStudioClient:
         if self.session:
             await self.session.close()
     
-    async def chat_completion(self, messages: List[Dict[str, str]], system_prompt: str = None) -> Optional[str]:
+    async def encode_image_to_base64(self, image_data: bytes) -> str:
         """
-        Send a chat completion request to LM Studio
+        Encode image bytes to base64 string for LM Studio API
+        
+        Args:
+            image_data: Raw image bytes
+            
+        Returns:
+            Base64 encoded image string
+        """
+        return base64.b64encode(image_data).decode('utf-8')
+    
+    async def download_discord_image(self, image_url: str) -> Optional[bytes]:
+        """
+        Download image from Discord CDN
+        
+        Args:
+            image_url: Discord CDN URL
+            
+        Returns:
+            Image bytes or None if download failed
+        """
+        try:
+            async with self.session.get(image_url) as response:
+                if response.status == 200:
+                    return await response.read()
+                else:
+                    logger.error(f"Failed to download image: {response.status}")
+                    return None
+        except Exception as e:
+            logger.error(f"Error downloading Discord image: {e}")
+            return None
+    
+    async def chat_completion(self, messages: List[Dict[str, Union[str, List]]], system_prompt: str = None) -> Optional[str]:
+        """
+        Send a chat completion request to LM Studio (supports text and images)
         
         Args:
             messages: List of message objects with 'role' and 'content'
+                     Content can be string (text) or list (multimodal)
             system_prompt: Optional system prompt to prepend
             
         Returns:
@@ -45,7 +80,21 @@ class LMStudioClient:
                     "content": system_prompt
                 })
             
-            chat_messages.extend(messages)
+            # Process messages to handle both text and multimodal content
+            for msg in messages:
+                processed_msg = {
+                    "role": msg["role"]
+                }
+                
+                # Handle multimodal content (list) vs simple text (string)
+                if isinstance(msg["content"], list):
+                    # Multimodal message with text and/or images
+                    processed_msg["content"] = msg["content"]
+                else:
+                    # Simple text message
+                    processed_msg["content"] = msg["content"]
+                
+                chat_messages.append(processed_msg)
             
             # Prepare request payload
             payload = {

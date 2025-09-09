@@ -27,6 +27,9 @@ class ChatCog(commands.Cog):
 
         # Decision tracking
         self.decision_cache = {}  # message_id -> decision (for debugging)
+        
+        # Supported image formats for vision
+        self.supported_image_formats = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 
     async def should_evaluate(self, message: discord.Message) -> bool:
         """Quick pre-filter before sending to LLM for decision"""
@@ -48,6 +51,43 @@ class ChatCog(commands.Cog):
 
         # Otherwise, let the LLM decide
         return True
+    
+    def extract_image_attachments(self, message: discord.Message) -> List[str]:
+        """Extract supported image URLs from Discord message attachments"""
+        image_urls = []
+        
+        for attachment in message.attachments:
+            # Check if attachment is an image by file extension
+            if any(attachment.filename.lower().endswith(ext) for ext in self.supported_image_formats):
+                image_urls.append(attachment.url)
+        
+        return image_urls
+    
+    async def create_multimodal_message(self, text_content: str, current_message: discord.Message = None) -> Dict:
+        """Create a multimodal message for LLM when images are present"""
+        content_parts = [{"type": "text", "text": text_content}]
+        
+        # Add current message images if any
+        if current_message:
+            image_urls = self.extract_image_attachments(current_message)
+            
+            async with LMStudioClient() as llm:
+                for img_url in image_urls:
+                    try:
+                        # Download and encode the image
+                        image_data = await llm.download_discord_image(img_url)
+                        if image_data:
+                            base64_image = await llm.encode_image_to_base64(image_data)
+                            content_parts.append({
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                }
+                            })
+                    except Exception as e:
+                        logger.error(f"Failed to process image {img_url}: {e}")
+        
+        return {"role": "user", "content": content_parts}
 
     async def build_unified_context(self, message: discord.Message, mode: str = "response") -> str:
         """
@@ -120,7 +160,16 @@ class ChatCog(commands.Cog):
         """First stage: Ask LLM if Gooby should respond"""
         try:
             context = await self.build_unified_context(message, mode="decision")
-            messages = [{"role": "user", "content": context}]
+            
+            # Check if current message has images - if so, create multimodal message
+            image_urls = self.extract_image_attachments(message)
+            if image_urls:
+                # Create multimodal message with both context and images
+                multimodal_msg = await self.create_multimodal_message(context, message)
+                messages = [multimodal_msg]
+            else:
+                # Standard text-only message
+                messages = [{"role": "user", "content": context}]
 
             async with LMStudioClient() as llm:
                 # TODO: Would be nice to use lower temperature for decisions
@@ -183,7 +232,16 @@ class ChatCog(commands.Cog):
         """Second stage: Generate Gooby's actual response"""
         try:
             context = await self.build_unified_context(message, mode="response")
-            messages = [{"role": "user", "content": context}]
+            
+            # Check if current message has images - if so, create multimodal message
+            image_urls = self.extract_image_attachments(message)
+            if image_urls:
+                # Create multimodal message with both context and images
+                multimodal_msg = await self.create_multimodal_message(context, message)
+                messages = [multimodal_msg]
+            else:
+                # Standard text-only message
+                messages = [{"role": "user", "content": context}]
 
             # Generate response using Gooby's personality
             async with LMStudioClient() as llm:
@@ -217,12 +275,14 @@ class ChatCog(commands.Cog):
         if Config.ALLOWED_CHANNELS and message.channel.id not in Config.ALLOWED_CHANNELS:
             return
 
-        # Store message in context
+        # Store message in context (including any image attachments)
+        image_urls = self.extract_image_attachments(message)
         await self.context_manager.add_message(
             str(message.channel.id),
             str(message.author.id),
             message.author.display_name,
-            message.content
+            message.content,
+            image_urls=image_urls if image_urls else None
         )
 
         # Store message in history for reaction targeting and context

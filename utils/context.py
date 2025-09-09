@@ -37,7 +37,8 @@ class ContextManager:
                         username TEXT NOT NULL,
                         content TEXT NOT NULL,
                         timestamp DATETIME NOT NULL,
-                        bot_responded BOOLEAN DEFAULT FALSE
+                        bot_responded BOOLEAN DEFAULT FALSE,
+                        image_urls TEXT DEFAULT NULL
                     )
                 """)
                 
@@ -51,6 +52,14 @@ class ContextManager:
                     ON messages(user_id, timestamp)
                 """)
                 
+                # Add image_urls column to existing tables if it doesn't exist
+                try:
+                    conn.execute("ALTER TABLE messages ADD COLUMN image_urls TEXT DEFAULT NULL")
+                    logger.info("Added image_urls column to existing messages table")
+                except sqlite3.OperationalError:
+                    # Column already exists
+                    pass
+                
                 conn.commit()
                 logger.info("Database initialized successfully")
                 
@@ -58,7 +67,7 @@ class ContextManager:
             logger.error(f"Failed to initialize database: {e}")
     
     async def add_message(self, channel_id: str, user_id: str, username: str, 
-                         content: str, bot_responded: bool = False):
+                         content: str, bot_responded: bool = False, image_urls: List[str] = None):
         """Add a message to the context history"""
         # Check if channel is allowed before storing
         if not self.is_channel_allowed(channel_id):
@@ -68,10 +77,16 @@ class ContextManager:
         async with self._lock:
             try:
                 with sqlite3.connect(self.db_path) as conn:
+                    # Convert image URLs list to JSON string for storage
+                    image_urls_json = None
+                    if image_urls:
+                        import json
+                        image_urls_json = json.dumps(image_urls)
+                    
                     conn.execute("""
-                        INSERT INTO messages (channel_id, user_id, username, content, timestamp, bot_responded)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (channel_id, user_id, username, content, datetime.utcnow(), bot_responded))
+                        INSERT INTO messages (channel_id, user_id, username, content, timestamp, bot_responded, image_urls)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (channel_id, user_id, username, content, datetime.utcnow(), bot_responded, image_urls_json))
                     
                     conn.commit()
                     
@@ -89,7 +104,7 @@ class ContextManager:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute("""
-                    SELECT user_id, username, content, timestamp, bot_responded
+                    SELECT user_id, username, content, timestamp, bot_responded, image_urls
                     FROM messages
                     WHERE channel_id = ?
                     ORDER BY timestamp DESC
@@ -98,12 +113,22 @@ class ContextManager:
                 
                 messages = []
                 for row in cursor.fetchall():
+                    # Parse image URLs from JSON
+                    image_urls = []
+                    if row['image_urls']:
+                        import json
+                        try:
+                            image_urls = json.loads(row['image_urls'])
+                        except json.JSONDecodeError:
+                            image_urls = []
+                    
                     messages.append({
                         'user_id': row['user_id'],
                         'username': row['username'],
                         'content': row['content'],
                         'timestamp': row['timestamp'],
-                        'bot_responded': bool(row['bot_responded'])
+                        'bot_responded': bool(row['bot_responded']),
+                        'image_urls': image_urls
                     })
                 
                 # Return in chronological order (oldest first)
