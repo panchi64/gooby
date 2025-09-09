@@ -131,20 +131,54 @@ class ContextManager:
             except Exception as e:
                 logger.error(f"Failed to cleanup old messages: {e}")
     
-    def format_messages_for_llm(self, messages: List[Dict], bot_name: str = "Gooby") -> str:
-        """Format messages for LLM context"""
+    def format_messages_for_llm(self, messages: List[Dict], bot_name: str = "Gooby", 
+                               max_messages: int = 15, max_content_length: int = 150) -> str:
+        """Format messages for LLM context with configurable limits"""
         if not messages:
             return "No recent conversation history."
         
         context_lines = ["Recent conversation:"]
         
-        for msg in messages[-15:]:  # Only use last 15 messages to avoid token limit
+        # Use the specified number of messages
+        for msg in messages[-max_messages:]:
             username = msg['username']
             content = msg['content']
             
-            # Truncate very long messages
-            if len(content) > 150:
-                content = content[:147] + "..."
+            # Truncate very long messages if limit specified
+            if max_content_length and len(content) > max_content_length:
+                content = content[:max_content_length-3] + "..."
+            
+            context_lines.append(f"{username}: {content}")
+        
+        return "\n".join(context_lines)
+    
+    def format_mixed_messages(self, messages, max_messages: int = 15, 
+                            max_content_length: int = None) -> str:
+        """
+        Format messages for LLM context, handling both DB dict format and Discord message objects
+        Provides unified formatting for any message source
+        """
+        if not messages:
+            return "No recent conversation history."
+        
+        context_lines = ["Recent conversation:"]
+        
+        # Use the specified number of messages
+        messages_to_use = messages[-max_messages:] if len(messages) > max_messages else messages
+        
+        for msg in messages_to_use:
+            # Handle both dictionary format (from DB) and Discord message objects
+            if isinstance(msg, dict):
+                username = msg.get('username', 'Unknown')
+                content = msg.get('content', '')
+            else:
+                # Discord message object
+                username = getattr(msg.author, 'display_name', 'Unknown')
+                content = getattr(msg, 'content', '')
+            
+            # Truncate very long messages if limit specified
+            if max_content_length and len(content) > max_content_length:
+                content = content[:max_content_length-3] + "..."
             
             context_lines.append(f"{username}: {content}")
         

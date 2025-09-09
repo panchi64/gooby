@@ -49,41 +49,77 @@ class ChatCog(commands.Cog):
         # Otherwise, let the LLM decide
         return True
     
-    def build_decision_context(self, message: discord.Message) -> str:
-        """Build minimal context for LLM decision-making"""
-        # Get last 5 messages for context
-        recent = list(self.message_history)[-5:] if len(self.message_history) > 0 else []
+    async def build_unified_context(self, message: discord.Message, mode: str = "response") -> str:
+        """
+        Unified context builder for both decision and response stages
+        Uses database as primary source with in-memory fallback for consistency
         
-        context = "Recent conversation:\n"
-        for msg in recent:
-            # Truncate long messages for decision context
-            content = msg.content[:100] + "..." if len(msg.content) > 100 else msg.content
-            context += f"{msg.author.display_name}: {content}\n"
+        Args:
+            message: The Discord message to build context for
+            mode: "decision" or "response" - determines context configuration
         
-        # Add the new message
-        context += f"\nNew message from {message.author.display_name}: {message.content}\n"
-        context += "\nShould Gooby respond? Reply with [SKIP] or [RESPOND]."
+        Returns:
+            Formatted context string ready for LLM consumption
+        """
+        # Configuration based on mode
+        config = {
+            "decision": {
+                "limit": 8, 
+                "truncate": 120, 
+                "include_new_msg": True,
+                "context_ending": f"\n\nNew message from {message.author.display_name}: {message.content}\nShould Gooby respond? Reply with [SKIP] or [RESPOND]."
+            },
+            "response": {
+                "limit": 15, 
+                "truncate": None, 
+                "include_new_msg": False,
+                "context_ending": f"\n\nRespond to {message.author.display_name}: {message.content}"
+            }
+        }
         
-        return context
-    
-    def build_response_context(self, message: discord.Message) -> str:
-        """Build full context for response generation"""
-        # Get last 10 messages for fuller context
-        recent = list(self.message_history)[-10:] if len(self.message_history) > 0 else []
+        mode_config = config.get(mode, config["response"])
         
-        context = "Recent conversation:\n"
-        for msg in recent:
-            context += f"{msg.author.display_name}: {msg.content}\n"
+        try:
+            # Primary: Try to get context from database (persistent across restarts)
+            db_messages = await self.context_manager.get_recent_messages(
+                str(message.channel.id), 
+                mode_config["limit"]
+            )
+            
+            if db_messages:
+                context = self.context_manager.format_mixed_messages(
+                    db_messages,
+                    max_messages=mode_config["limit"],
+                    max_content_length=mode_config["truncate"]
+                )
+            else:
+                # Fallback: Use in-memory deque if database is empty/unavailable
+                memory_messages = list(self.message_history)[-mode_config["limit"]:]
+                context = self.context_manager.format_mixed_messages(
+                    memory_messages,
+                    max_messages=mode_config["limit"],
+                    max_content_length=mode_config["truncate"]
+                )
+                
+        except Exception as e:
+            logger.error(f"Failed to get database context, using memory fallback: {e}")
+            # Emergency fallback to in-memory deque
+            memory_messages = list(self.message_history)[-mode_config["limit"]:]
+            context = self.context_manager.format_mixed_messages(
+                memory_messages,
+                max_messages=mode_config["limit"],
+                max_content_length=mode_config["truncate"]
+            )
         
-        # Add instruction for response
-        context += f"\nRespond to {message.author.display_name}'s message: {message.content}"
+        # Add the appropriate ending based on mode
+        context += mode_config["context_ending"]
         
         return context
     
     async def get_llm_decision(self, message: discord.Message) -> str:
         """First stage: Ask LLM if Gooby should respond"""
         try:
-            context = self.build_decision_context(message)
+            context = await self.build_unified_context(message, mode="decision")
             messages = [{"role": "user", "content": context}]
             
             async with LMStudioClient() as llm:
@@ -146,7 +182,7 @@ class ChatCog(commands.Cog):
     async def generate_response(self, message: discord.Message) -> str:
         """Second stage: Generate Gooby's actual response"""
         try:
-            context = self.build_response_context(message)
+            context = await self.build_unified_context(message, mode="response")
             messages = [{"role": "user", "content": context}]
             
             # Generate response using Gooby's personality
