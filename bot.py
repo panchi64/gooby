@@ -34,6 +34,7 @@ class GoobyBot(commands.Bot):
         await self.load_extension('cogs.chat')
         await self.load_extension('cogs.memes')
         await self.load_extension('cogs.images')
+        await self.load_extension('cogs.dice')
         
         # Sync slash commands
         try:

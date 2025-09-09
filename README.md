@@ -63,6 +63,12 @@
 - Random meme generator for spontaneous fun
 - Easy template management system
 
+### 🎲 **Dice Rolling**
+- Natural language dice expressions (`3d20`, `1d4 + 2d6`)
+- Individual roll breakdowns and calculations
+- Complex mathematical expressions support
+- Safe limits and comprehensive error handling
+
 </td>
 <td width="50%">
 
@@ -286,6 +292,7 @@ MAX_TEMPLATE_SIZE=10
 | `/image` | `query` | Search for images | `/image cute puppies` |
 | `/randomimage` | - | Get a random image | `/randomimage` |
 | `/reload_personality` | - | Reload personality file (owner only) | `/reload_personality` |
+| `/roll` | `expression` | Roll dice with expressions | `/roll 3d20`, `/roll 1d4 + 2d6 + 5` |
 
 ### 📝 Prefix Commands (Legacy)
 
@@ -296,6 +303,7 @@ MAX_TEMPLATE_SIZE=10
 | `!templates` | `!templates` | List templates |
 | `!image` | `!image [search query]` | Search images |
 | `!help` | `!help` | Show help message |
+| `!roll` | `!roll [expression]` | Roll dice (aliases: `!dice`, `!r`) |
 
 ### 🤖 Auto-Responses
 
@@ -333,7 +341,8 @@ gooby/
 ├── 🧩 cogs/                    # Bot feature modules (Discord.py cogs)
 │   ├── 💬 chat.py              # AI chat, personality & auto-responses
 │   ├── 🎭 memes.py             # Meme generation & template management
-│   └── 🖼️ images.py            # Image search & random images
+│   ├── 🖼️ images.py            # Image search & random images
+│   └── 🎲 dice.py              # Dice rolling with natural language parsing
 │
 ├── 🛠️ utils/                   # Helper modules & utilities
 │   ├── 🤖 llm_client.py        # LM Studio API integration
