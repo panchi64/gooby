@@ -4,11 +4,12 @@ from discord import app_commands
 import random
 import re
 import logging
+import time
 from typing import List, Dict, Optional, Tuple
 from collections import deque
 from utils.llm_client import LMStudioClient, get_fallback_response
 from utils.context import ContextManager
-from config import Config, GOOBY_SYSTEM_PROMPT, load_personality
+from config import Config, GOOBY_SYSTEM_PROMPT, GOOBY_DECISION_PROMPT, load_personality, load_decision_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -16,51 +17,96 @@ class ChatCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.context_manager = ContextManager()
-        self.goob_reactions = ['🫘', '👀', '🙄']
         
-        # Keywords that increase response probability
-        self.trigger_keywords = [
-            'gooby', 'goob', 'help', 'what', 'how', 'why', 'funny', 'joke'
-        ]
-        
-        # Message history for reaction targeting
+        # Message history for reaction targeting and context
         self.message_history = deque(maxlen=10)
         
-        # Random bean reactions
-        self.last_bean_reaction = 0
+        # Rate limiting
+        self.last_response_time = {}  # channel_id -> timestamp
+        self.min_response_gap = 3  # seconds between responses per channel
+        
+        # Decision tracking
+        self.decision_cache = {}  # message_id -> decision (for debugging)
     
-    async def should_respond(self, message: discord.Message) -> tuple[bool, float]:
-        """Determine if Gooby should respond to a message"""
-        content_lower = message.content.lower()
+    async def should_evaluate(self, message: discord.Message) -> bool:
+        """Quick pre-filter before sending to LLM for decision"""
+        # Always evaluate direct mentions
+        if self.bot.user in message.mentions:
+            return True
         
-        # Always respond to direct mentions or replies
-        if self.bot.user in message.mentions or (
-            message.reference and message.reference.resolved and 
-            message.reference.resolved.author == self.bot.user
-        ):
-            return True, 1.0
+        # Always evaluate replies to bot
+        if message.reference and message.reference.resolved:
+            if message.reference.resolved.author == self.bot.user:
+                return True
         
-        # High probability if name mentioned
-        if 'gooby' in content_lower:
-            return True, 0.8
+        # Check rate limiting per channel
+        channel_id = message.channel.id
+        if channel_id in self.last_response_time:
+            time_since_last = time.time() - self.last_response_time[channel_id]
+            if time_since_last < self.min_response_gap:
+                return False  # Too soon since last response
         
-        # Medium probability for trigger keywords
-        keyword_count = sum(1 for keyword in self.trigger_keywords if keyword in content_lower)
-        if keyword_count > 0:
-            probability = min(0.6, keyword_count * 0.2)
-            return random.random() < probability, probability
-        
-        # Check interaction history
-        history_probability = await self.context_manager.should_respond_based_on_history(
-            str(message.channel.id), str(message.author.id)
-        )
-        
-        return random.random() < history_probability, history_probability
+        # Otherwise, let the LLM decide
+        return True
     
-    def contains_question(self, content: str) -> bool:
-        """Check if message contains a question"""
-        return ('?' in content or 
-                content.lower().startswith(('what', 'how', 'why', 'when', 'where', 'who', 'can', 'do', 'is', 'are')))
+    def build_decision_context(self, message: discord.Message) -> str:
+        """Build minimal context for LLM decision-making"""
+        # Get last 5 messages for context
+        recent = list(self.message_history)[-5:] if len(self.message_history) > 0 else []
+        
+        context = "Recent conversation:\n"
+        for msg in recent:
+            # Truncate long messages for decision context
+            content = msg.content[:100] + "..." if len(msg.content) > 100 else msg.content
+            context += f"{msg.author.display_name}: {content}\n"
+        
+        # Add the new message
+        context += f"\nNew message from {message.author.display_name}: {message.content}\n"
+        context += "\nShould Gooby respond? Reply with [SKIP] or [RESPOND]."
+        
+        return context
+    
+    def build_response_context(self, message: discord.Message) -> str:
+        """Build full context for response generation"""
+        # Get last 10 messages for fuller context
+        recent = list(self.message_history)[-10:] if len(self.message_history) > 0 else []
+        
+        context = "Recent conversation:\n"
+        for msg in recent:
+            context += f"{msg.author.display_name}: {msg.content}\n"
+        
+        # Add instruction for response
+        context += f"\nRespond to {message.author.display_name}'s message: {message.content}"
+        
+        return context
+    
+    async def get_llm_decision(self, message: discord.Message) -> str:
+        """First stage: Ask LLM if Gooby should respond"""
+        try:
+            context = self.build_decision_context(message)
+            messages = [{"role": "user", "content": context}]
+            
+            async with LMStudioClient() as llm:
+                # TODO: Would be nice to use lower temperature for decisions
+                decision = await llm.chat_completion(
+                    messages,
+                    GOOBY_DECISION_PROMPT
+                )
+                
+                if decision:
+                    # Cache the decision for debugging
+                    self.decision_cache[message.id] = decision.strip()
+                    return decision.strip()
+                
+            return "[SKIP]"  # Default to skip if LLM fails
+            
+        except Exception as e:
+            logger.error(f"Failed to get LLM decision: {e}")
+            # On error, only respond to direct mentions
+            if self.bot.user in message.mentions:
+                return "[RESPOND]"
+            return "[SKIP]"
+    
     
     def parse_reaction_command(self, response: str) -> Tuple[str, Optional[str], Optional[str]]:
         """Parse reaction commands from response
@@ -98,34 +144,18 @@ class ChatCog(commands.Cog):
             logger.debug(f"Failed to apply reaction: {e}")
     
     async def generate_response(self, message: discord.Message) -> str:
-        """Generate a response using LM Studio"""
+        """Second stage: Generate Gooby's actual response"""
         try:
-            # Get conversation context
-            recent_messages = await self.context_manager.get_recent_messages(
-                str(message.channel.id), limit=15
-            )
+            context = self.build_response_context(message)
+            messages = [{"role": "user", "content": context}]
             
-            # Format context for LLM
-            context = self.context_manager.format_messages_for_llm(recent_messages, "Gooby")
-            
-            # Build the conversation
-            messages = []
-            
-            # Add context if available
-            if recent_messages:
-                messages.append({
-                    "role": "user", 
-                    "content": f"Here's our recent conversation for context:\n{context}\n\nNow respond to: {message.content}"
-                })
-            else:
-                messages.append({
-                    "role": "user",
-                    "content": message.content
-                })
-            
-            # Generate response using LM Studio
+            # Generate response using Gooby's personality
             async with LMStudioClient() as llm:
-                response = await llm.chat_completion(messages, GOOBY_SYSTEM_PROMPT)
+                response = await llm.chat_completion(
+                    messages,
+                    GOOBY_SYSTEM_PROMPT
+                    # Uses default temperature and max_tokens from Config
+                )
                 
                 if response:
                     return response
@@ -155,24 +185,21 @@ class ChatCog(commands.Cog):
             message.content
         )
         
-        # Store message in history for reaction targeting
+        # Store message in history for reaction targeting and context
         self.message_history.append(message)
         
-        # Random bean reactions (extremely rare)
-        if random.random() < 0.001:  # 0.1% chance
-            try:
-                await message.add_reaction('🫘')
-            except:
-                pass  # Ignore reaction failures
+        # Check if we should evaluate this message
+        if not await self.should_evaluate(message):
+            return  # Skip due to rate limiting or other filters
         
-        # Check if should respond
-        should_respond, probability = await self.should_respond(message)
-        
-        if should_respond:
-            try:
-                # Show typing indicator
+        try:
+            # Stage 1: Get LLM decision
+            decision = await self.get_llm_decision(message)
+            
+            # Check if LLM decided to respond
+            if "[RESPOND]" in decision:
+                # Stage 2: Generate and send response
                 async with message.channel.typing():
-                    # Generate response
                     response = await self.generate_response(message)
                     
                     # Parse reaction command if present
@@ -194,8 +221,13 @@ class ChatCog(commands.Cog):
                         bot_responded=True
                     )
                     
-            except Exception as e:
-                logger.error(f"Failed to send response: {e}")
+                    # Update rate limiting
+                    self.last_response_time[message.channel.id] = time.time()
+                    
+            # If [SKIP], do nothing
+            
+        except Exception as e:
+            logger.error(f"Failed in message handling: {e}")
     
     @app_commands.command(name="chat", description="Have a direct chat with Gooby!")
     async def chat_slash(self, interaction: discord.Interaction, message: str):
@@ -325,22 +357,24 @@ class ChatCog(commands.Cog):
         await interaction.response.defer()
         
         try:
-            # Reload the personality
-            global GOOBY_SYSTEM_PROMPT
+            # Reload both personality and decision prompts
+            global GOOBY_SYSTEM_PROMPT, GOOBY_DECISION_PROMPT
             new_personality = load_personality()
+            new_decision = load_decision_prompt()
             
-            # Update the global variable (this is a bit hacky but works)
+            # Update the global variables
             import config
             config.GOOBY_SYSTEM_PROMPT = new_personality
+            config.GOOBY_DECISION_PROMPT = new_decision
             
-            # Also update the local reference
-            global GOOBY_SYSTEM_PROMPT
+            # Also update the local references
             GOOBY_SYSTEM_PROMPT = new_personality
+            GOOBY_DECISION_PROMPT = new_decision
             
             await interaction.followup.send(
-                "Personality reloaded. New me, same attitude."
+                "Personality and decision logic reloaded. Fresh perspective acquired."
             )
-            logger.info("Personality reloaded via slash command")
+            logger.info("Personality and decision prompts reloaded via slash command")
             
         except Exception as e:
             logger.error(f"Failed to reload personality: {e}")
@@ -353,20 +387,22 @@ class ChatCog(commands.Cog):
     async def reload_personality_prefix(self, ctx):
         """Reload Gooby's personality from file (Owner only)"""
         try:
-            # Reload the personality
-            global GOOBY_SYSTEM_PROMPT
+            # Reload both personality and decision prompts
+            global GOOBY_SYSTEM_PROMPT, GOOBY_DECISION_PROMPT
             new_personality = load_personality()
+            new_decision = load_decision_prompt()
             
-            # Update the global variable
+            # Update the global variables
             import config
             config.GOOBY_SYSTEM_PROMPT = new_personality
+            config.GOOBY_DECISION_PROMPT = new_decision
             
-            # Also update the local reference
-            global GOOBY_SYSTEM_PROMPT
+            # Also update the local references
             GOOBY_SYSTEM_PROMPT = new_personality
+            GOOBY_DECISION_PROMPT = new_decision
             
-            await ctx.send("Personality reloaded. Ready to be slightly less insufferable.")
-            logger.info("Personality reloaded via prefix command")
+            await ctx.send("Personality and decision logic reloaded. Perspective shift complete.")
+            logger.info("Personality and decision prompts reloaded via prefix command")
             
         except Exception as e:
             logger.error(f"Failed to reload personality: {e}")

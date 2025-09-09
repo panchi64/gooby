@@ -79,5 +79,50 @@ def load_personality(filename: str = "gooby_personality.md") -> str:
         raise Exception(f"Failed to load personality file {filename}: {e}")
 
 
+def load_decision_prompt(filename: str = "gooby_decision.md") -> str:
+    """
+    Load Gooby's decision-making prompt from a file
+    
+    Args:
+        filename: Name of the decision file to load
+        
+    Returns:
+        The decision prompt as a string
+    """
+    decision_path = Path(filename)
+    
+    try:
+        with open(decision_path, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            
+            # Remove markdown headers and format for LLM
+            lines = content.split('\n')
+            cleaned_lines = []
+            
+            for line in lines:
+                # Skip markdown headers, separators, and empty lines
+                line = line.strip()
+                if line and not line.startswith('#') and not line.startswith('---'):
+                    cleaned_lines.append(line)
+            
+            decision = ' '.join(cleaned_lines)
+            
+            # Clean up extra spaces
+            while '  ' in decision:
+                decision = decision.replace('  ', ' ')
+            
+            logger.info(f"Successfully loaded decision prompt from {filename}")
+            return decision
+            
+    except FileNotFoundError:
+        logger.error(f"Decision file {filename} not found, using fallback")
+        # Simple fallback
+        return "Analyze the conversation and decide if Gooby should respond. Reply with [SKIP] or [RESPOND]."
+    except Exception as e:
+        logger.error(f"Error loading decision file {filename}: {e}")
+        return "Analyze the conversation and decide if Gooby should respond. Reply with [SKIP] or [RESPOND]."
+
+
 # Load Gooby's personality from file
 GOOBY_SYSTEM_PROMPT = load_personality()
+GOOBY_DECISION_PROMPT = load_decision_prompt()
