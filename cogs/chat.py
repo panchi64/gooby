@@ -205,21 +205,32 @@ class ChatCog(commands.Cog):
                     # Parse reaction command if present
                     clean_response, reaction_target, reaction_emoji = self.parse_reaction_command(response)
                     
-                    # Send the clean response (without reaction command)
-                    sent_message = await message.channel.send(clean_response)
+                    # Only send message if there's actual content
+                    if clean_response and clean_response.strip():
+                        sent_message = await message.channel.send(clean_response)
+                        
+                        # Record bot message response
+                        await self.context_manager.add_message(
+                            str(message.channel.id),
+                            str(self.bot.user.id),
+                            self.bot.user.display_name,
+                            clean_response,
+                            bot_responded=True
+                        )
                     
                     # Apply reaction if specified
                     if reaction_target and reaction_emoji:
                         await self.apply_reaction(reaction_target, reaction_emoji, message.channel)
-                    
-                    # Record that bot responded
-                    await self.context_manager.add_message(
-                        str(message.channel.id),
-                        str(self.bot.user.id),
-                        self.bot.user.display_name,
-                        clean_response,
-                        bot_responded=True
-                    )
+                        
+                        # If we only reacted (no text), still record that the bot responded
+                        if not (clean_response and clean_response.strip()):
+                            await self.context_manager.add_message(
+                                str(message.channel.id),
+                                str(self.bot.user.id),
+                                self.bot.user.display_name,
+                                f"[Reacted with {reaction_emoji}]",
+                                bot_responded=True
+                            )
                     
                     # Update rate limiting
                     self.last_response_time[message.channel.id] = time.time()
@@ -229,53 +240,6 @@ class ChatCog(commands.Cog):
         except Exception as e:
             logger.error(f"Failed in message handling: {e}")
     
-    @app_commands.command(name="chat", description="Have a direct chat with Gooby!")
-    async def chat_slash(self, interaction: discord.Interaction, message: str):
-        """Direct chat command"""
-        await interaction.response.defer()
-        
-        try:
-            # Create a mock message object for context
-            class MockMessage:
-                def __init__(self, content, author, channel):
-                    self.content = content
-                    self.author = author
-                    self.channel = channel
-                    self.mentions = []
-                    self.reference = None
-            
-            mock_msg = MockMessage(message, interaction.user, interaction.channel)
-            response = await self.generate_response(mock_msg)
-            
-            # Parse and clean response
-            clean_response, reaction_target, reaction_emoji = self.parse_reaction_command(response)
-            
-            # Send clean response
-            sent_msg = await interaction.followup.send(clean_response)
-            
-            # Apply reaction if specified (to the user's original message if possible)
-            if reaction_target and reaction_emoji and reaction_target == 'last' and len(self.message_history) > 0:
-                await self.apply_reaction(reaction_target, reaction_emoji, interaction.channel)
-            
-            # Store both user message and bot response
-            await self.context_manager.add_message(
-                str(interaction.channel.id),
-                str(interaction.user.id),
-                interaction.user.display_name,
-                message
-            )
-            
-            await self.context_manager.add_message(
-                str(interaction.channel.id),
-                str(self.bot.user.id),
-                self.bot.user.display_name,
-                clean_response,
-                bot_responded=True
-            )
-            
-        except Exception as e:
-            logger.error(f"Chat slash command error: {e}")
-            await interaction.followup.send("Yeah, that didn't work out so well. Try again, chief.")
     
     @app_commands.command(name="goobify", description="Transform text with goobly magic!")
     async def goobify_slash(self, interaction: discord.Interaction, text: str):
@@ -331,8 +295,9 @@ class ChatCog(commands.Cog):
                 # Parse and clean response
                 clean_response, reaction_target, reaction_emoji = self.parse_reaction_command(response)
                 
-                # Send clean response
-                await ctx.send(clean_response)
+                # Only send message if there's actual content
+                if clean_response and clean_response.strip():
+                    await ctx.send(clean_response)
                 
                 # Apply reaction if specified
                 if reaction_target and reaction_emoji:
