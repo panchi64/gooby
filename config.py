@@ -13,7 +13,7 @@ class Config:
     DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
     ALLOWED_SERVER_ID = int(os.getenv('ALLOWED_SERVER_ID')) if os.getenv('ALLOWED_SERVER_ID') else None
     BOT_PREFIX = os.getenv('BOT_PREFIX', '!')
-    
+
     # Channel filtering - comma-separated channel IDs, empty means all channels allowed
     ALLOWED_CHANNELS = []
     if os.getenv('ALLOWED_CHANNELS'):
@@ -22,21 +22,21 @@ class Config:
         except ValueError as e:
             logger.error(f"Invalid ALLOWED_CHANNELS format: {e}. Using no channel restrictions.")
             ALLOWED_CHANNELS = []
-    
+
     # LM Studio Configuration
     LM_STUDIO_URL = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1/chat/completions')
     LM_STUDIO_TIMEOUT = int(os.getenv('LM_STUDIO_TIMEOUT', '30'))
     MAX_TOKENS = int(os.getenv('MAX_TOKENS', '500'))
     TEMPERATURE = float(os.getenv('TEMPERATURE', '0.8'))
-    
+
     # Bot Personality
     BOT_NAME = os.getenv('BOT_NAME', 'Gooby')
     RESPONSE_CHANCE = float(os.getenv('RESPONSE_CHANCE', '0.3'))
     CONTEXT_MESSAGE_LIMIT = int(os.getenv('CONTEXT_MESSAGE_LIMIT', '20'))
-    
+
     # Database
     DATABASE_PATH = os.getenv('DATABASE_PATH', './data/gooby.db')
-    
+
     # Validation
     @classmethod
     def validate(cls):
@@ -49,38 +49,38 @@ class Config:
 def load_personality(filename: str = "gooby_personality.md") -> str:
     """
     Load Gooby's personality from a file
-    
+
     Args:
         filename: Name of the personality file to load
-        
+
     Returns:
         The personality prompt as a string
     """
     personality_path = Path(filename)
-    
+
     try:
         with open(personality_path, 'r', encoding='utf-8') as f:
             content = f.read().strip()
-            
+
             # Remove markdown headers and format for LLM
             lines = content.split('\n')
             cleaned_lines = []
-            
+
             for line in lines:
                 # Skip markdown headers, separators, and empty lines
                 line = line.strip()
                 if line and not line.startswith('#') and not line.startswith('---'):
                     cleaned_lines.append(line)
-            
+
             personality = ' '.join(cleaned_lines)
-            
+
             # Clean up extra spaces
             while '  ' in personality:
                 personality = personality.replace('  ', ' ')
-            
+
             logger.info(f"Successfully loaded personality from {filename}")
             return personality
-            
+
     except FileNotFoundError:
         logger.error(f"Personality file {filename} not found and no fallback available")
         raise FileNotFoundError(f"Required personality file {filename} not found")
@@ -92,38 +92,38 @@ def load_personality(filename: str = "gooby_personality.md") -> str:
 def load_decision_prompt(filename: str = "gooby_decision.md") -> str:
     """
     Load Gooby's decision-making prompt from a file
-    
+
     Args:
         filename: Name of the decision file to load
-        
+
     Returns:
         The decision prompt as a string
     """
     decision_path = Path(filename)
-    
+
     try:
         with open(decision_path, 'r', encoding='utf-8') as f:
             content = f.read().strip()
-            
+
             # Remove markdown headers and format for LLM
             lines = content.split('\n')
             cleaned_lines = []
-            
+
             for line in lines:
                 # Skip markdown headers, separators, and empty lines
                 line = line.strip()
                 if line and not line.startswith('#') and not line.startswith('---'):
                     cleaned_lines.append(line)
-            
+
             decision = ' '.join(cleaned_lines)
-            
+
             # Clean up extra spaces
             while '  ' in decision:
                 decision = decision.replace('  ', ' ')
-            
+
             logger.info(f"Successfully loaded decision prompt from {filename}")
             return decision
-            
+
     except FileNotFoundError:
         logger.error(f"Decision file {filename} not found, using fallback")
         # Simple fallback
