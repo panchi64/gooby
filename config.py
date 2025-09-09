@@ -14,6 +14,15 @@ class Config:
     ALLOWED_SERVER_ID = int(os.getenv('ALLOWED_SERVER_ID')) if os.getenv('ALLOWED_SERVER_ID') else None
     BOT_PREFIX = os.getenv('BOT_PREFIX', '!')
     
+    # Channel filtering - comma-separated channel IDs, empty means all channels allowed
+    ALLOWED_CHANNELS = []
+    if os.getenv('ALLOWED_CHANNELS'):
+        try:
+            ALLOWED_CHANNELS = [int(ch.strip()) for ch in os.getenv('ALLOWED_CHANNELS').split(',') if ch.strip()]
+        except ValueError as e:
+            logger.error(f"Invalid ALLOWED_CHANNELS format: {e}. Using no channel restrictions.")
+            ALLOWED_CHANNELS = []
+    
     # LM Studio Configuration
     LM_STUDIO_URL = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1/chat/completions')
     LM_STUDIO_TIMEOUT = int(os.getenv('LM_STUDIO_TIMEOUT', '30'))

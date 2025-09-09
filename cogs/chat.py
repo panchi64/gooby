@@ -213,6 +213,10 @@ class ChatCog(commands.Cog):
         if Config.ALLOWED_SERVER_ID and message.guild and message.guild.id != Config.ALLOWED_SERVER_ID:
             return
         
+        # Check channel restriction
+        if Config.ALLOWED_CHANNELS and message.channel.id not in Config.ALLOWED_CHANNELS:
+            return
+        
         # Store message in context
         await self.context_manager.add_message(
             str(message.channel.id),

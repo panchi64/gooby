@@ -13,6 +13,18 @@ class ContextManager:
         self._lock = asyncio.Lock()
         self.init_database()
     
+    def is_channel_allowed(self, channel_id: str) -> bool:
+        """Check if a channel is allowed based on configuration"""
+        if not Config.ALLOWED_CHANNELS:
+            return True  # If no channels specified, all channels are allowed
+        
+        try:
+            channel_id_int = int(channel_id)
+            return channel_id_int in Config.ALLOWED_CHANNELS
+        except (ValueError, TypeError):
+            logger.error(f"Invalid channel_id format: {channel_id}")
+            return False
+    
     def init_database(self):
         """Initialize SQLite database with required tables"""
         try:
@@ -48,6 +60,11 @@ class ContextManager:
     async def add_message(self, channel_id: str, user_id: str, username: str, 
                          content: str, bot_responded: bool = False):
         """Add a message to the context history"""
+        # Check if channel is allowed before storing
+        if not self.is_channel_allowed(channel_id):
+            logger.debug(f"Skipping message storage for non-allowed channel: {channel_id}")
+            return
+        
         async with self._lock:
             try:
                 with sqlite3.connect(self.db_path) as conn:
@@ -63,6 +80,11 @@ class ContextManager:
     
     async def get_recent_messages(self, channel_id: str, limit: int = 20) -> List[Dict]:
         """Get recent messages from a channel for context"""
+        # Check if channel is allowed before retrieving
+        if not self.is_channel_allowed(channel_id):
+            logger.debug(f"Skipping message retrieval for non-allowed channel: {channel_id}")
+            return []
+        
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
