@@ -66,13 +66,13 @@ class MemesCog(commands.Cog):
                 
                 # Create embed
                 embed = discord.Embed(
-                    title="🫘 Goob-tastic Meme!",
+                    title="Fresh Meme, Hot Off the Press",
                     color=0x7289da,
                     description=f"Template: **{template.replace('_', ' ').title()}**"
                 )
                 embed.set_author(name=f"Created by {interaction.user.display_name}")
                 embed.set_image(url=f"attachment://gooby_meme_{template}.png")
-                embed.set_footer(text="Made with goobly love! ✨")
+                embed.set_footer(text="Made with questionable taste.")
                 
                 await interaction.followup.send(embed=embed, file=file)
                 
@@ -80,14 +80,14 @@ class MemesCog(commands.Cog):
                 
             else:
                 await interaction.followup.send(
-                    f"Oops! Couldn't find the '{template}' template, goober! 😅\n"
-                    f"Try using `/templates` to see what's available!"
+                    f"Can't find the '{template}' template, chief. "
+                    f"Try `/templates` to see what's actually available."
                 )
                 
         except Exception as e:
             logger.error(f"Meme creation error: {e}")
             await interaction.followup.send(
-                "Uh oh, my meme machine went goobly! 🤖 Try again in a moment!"
+                "Meme generation failed. Technology is amazing, isn't it?"
             )
     
     @app_commands.command(name="templates", description="See available meme templates")
@@ -100,8 +100,7 @@ class MemesCog(commands.Cog):
             
             if not templates:
                 await interaction.followup.send(
-                    "Looks like no templates are set up yet! 😱\n"
-                    "Ask your goobly admin to run the template setup!"
+                    "No templates found. Someone forgot to set things up properly."
                 )
                 return
             
@@ -112,7 +111,7 @@ class MemesCog(commands.Cog):
             embed = discord.Embed(
                 title="🎭 Available Meme Templates",
                 color=0x7289da,
-                description="Here are all the goob-tastic templates you can use!"
+                description="Here are the templates that actually work."
             )
             
             if popular:
@@ -140,13 +139,13 @@ class MemesCog(commands.Cog):
                 inline=False
             )
             
-            embed.set_footer(text=f"Total templates: {len(templates)} | Goob-tastic! 🫘")
+            embed.set_footer(text=f"Total templates: {len(templates)} | Use them wisely.")
             
             await interaction.followup.send(embed=embed)
             
         except Exception as e:
             logger.error(f"Templates command error: {e}")
-            await interaction.followup.send("Couldn't load templates right now, goober! 😅")
+            await interaction.followup.send("Template loading failed. Shocking.")
     
     @commands.command(name="meme", aliases=['m'])
     async def meme_prefix(self, ctx, template: str = None, *, text: str = ""):

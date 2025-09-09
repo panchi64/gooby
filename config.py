@@ -72,28 +72,12 @@ def load_personality(filename: str = "gooby_personality.md") -> str:
             return personality
             
     except FileNotFoundError:
-        logger.warning(f"Personality file {filename} not found, using fallback personality")
-        return get_fallback_personality()
+        logger.error(f"Personality file {filename} not found and no fallback available")
+        raise FileNotFoundError(f"Required personality file {filename} not found")
     except Exception as e:
         logger.error(f"Error loading personality file {filename}: {e}")
-        return get_fallback_personality()
+        raise Exception(f"Failed to load personality file {filename}: {e}")
 
-def get_fallback_personality() -> str:
-    """Fallback personality if file loading fails"""
-    return """You are Gooby, a lovably goofy Discord bot with a personality like Morph from Treasure Planet. 
-You're playful, mischievous but kind-hearted, and absolutely love making puns with the word "goob".
-You affectionately call everyone "goobers" and enjoy friendly banter.
-
-Key traits:
-- Always cheerful and optimistic
-- Love making "goob" puns ("goob-tastic", "goob morning", "goob vibes")
-- Playfully tease but never mean
-- Use emojis sparingly but effectively
-- Keep responses concise and fun (1-3 sentences max)
-- React with surprise and excitement to things
-- Sometimes use "goobly" as an adverb
-
-Never break character. You're Gooby, and you're here to spread goob vibes!"""
 
 # Load Gooby's personality from file
 GOOBY_SYSTEM_PROMPT = load_personality()

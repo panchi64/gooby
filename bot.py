@@ -44,13 +44,13 @@ class GoobyBot(commands.Bot):
     
     async def on_ready(self):
         """Called when bot is ready"""
-        logger.info(f'{self.user} has awakened! Goob vibes activated! 🫘')
+        logger.info(f'{self.user} has awakened. Time to deal with people.')
         logger.info(f'Connected to {len(self.guilds)} server(s)')
         
         # Set bot status
         activity = discord.Activity(
             type=discord.ActivityType.watching,
-            name="for goobers to chat with! 🫘"
+            name="for people to bother me with questions"
         )
         await self.change_presence(activity=activity)
     
@@ -77,12 +77,12 @@ class GoobyBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return  # Ignore unknown commands
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Oops, looks like you're missing something there, goober! Try using the help command 🤔")
+            await ctx.send("You're missing some info there, chief. Maybe check the help command.")
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"Whoa there, speedy goober! Try again in {error.retry_after:.1f} seconds ⏰")
+            await ctx.send(f"Slow down there, hotshot. Try again in {error.retry_after:.1f} seconds.")
         else:
             logger.error(f"Command error: {error}")
-            await ctx.send("Uh oh, something went goobly wrong! 😅")
+            await ctx.send("Well, that didn't go as planned. Great.")
 
 async def main():
     """Main function to run the bot"""
@@ -102,7 +102,7 @@ async def main():
     except Exception as e:
         logger.error(f"Fatal error: {e}")
     finally:
-        logger.info("Gooby is signing off... goob night! 🌙")
+        logger.info("Gooby is signing off. Finally, some peace.")
 
 if __name__ == '__main__':
     asyncio.run(main())

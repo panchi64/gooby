@@ -15,12 +15,11 @@ class ChatCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.context_manager = ContextManager()
-        self.goob_reactions = ['🫘', '😄', '🤖', '🎭', '✨']
+        self.goob_reactions = ['🫘', '👀', '🙄']
         
         # Keywords that increase response probability
         self.trigger_keywords = [
-            'goob', 'gooby', 'goober', 'goobers', 'morph', 
-            'treasure planet', 'silly', 'funny', 'joke'
+            'gooby', 'goob', 'help', 'what', 'how', 'why', 'funny', 'joke'
         ]
         
         # Random bean reactions
@@ -118,7 +117,7 @@ class ChatCog(commands.Cog):
         )
         
         # Random bean reactions (very occasionally)
-        if random.random() < 0.05:  # 5% chance
+        if random.random() < 0.02:  # 2% chance
             try:
                 await message.add_reaction('🫘')
             except:
@@ -195,7 +194,7 @@ class ChatCog(commands.Cog):
             
         except Exception as e:
             logger.error(f"Chat slash command error: {e}")
-            await interaction.followup.send("Oops, my goobly circuits got tangled! 🤖")
+            await interaction.followup.send("Yeah, that didn't work out so well. Try again, chief.")
     
     @app_commands.command(name="goobify", description="Transform text with goobly magic!")
     async def goobify_slash(self, interaction: discord.Interaction, text: str):
@@ -204,12 +203,11 @@ class ChatCog(commands.Cog):
         
         try:
             # Ask LM Studio to goobify the text
-            goobify_prompt = f"""Transform this text by adding "goob" puns and Gooby's playful personality. 
-            Keep the original meaning but make it more goobly and fun!
+            goobify_prompt = f"""Add some wit and maybe a subtle goob pun to this text. Keep it clever, not overwhelming.
             
             Original text: "{text}"
             
-            Make it goobly but don't go overboard - 1-2 goob puns maximum."""
+            Make it more interesting but don't go overboard."""
             
             messages = [{"role": "user", "content": goobify_prompt}]
             
@@ -227,13 +225,13 @@ class ChatCog(commands.Cog):
                     
         except Exception as e:
             logger.error(f"Goobify command error: {e}")
-            await interaction.followup.send("Oops, my goobification machine broke! 😅")
+            await interaction.followup.send("Well, that was a spectacular failure. Maybe try again later.")
     
     @commands.command(name="goob")
     async def goob_prefix(self, ctx, *, message: str = None):
         """Prefix version of chat command"""
         if not message:
-            await ctx.send("Whatcha want to chat about, goober? 🤔")
+            await ctx.send("You gonna say something or just stand there, chief?")
             return
         
         try:
@@ -253,7 +251,7 @@ class ChatCog(commands.Cog):
                 
         except Exception as e:
             logger.error(f"Goob prefix command error: {e}")
-            await ctx.send("My goobly brain had a hiccup! 🧠")
+            await ctx.send("Something went sideways there, pal. Give it another shot.")
     
     @app_commands.command(name="reload_personality", description="Reload Gooby's personality from file (Owner only)")
     async def reload_personality_slash(self, interaction: discord.Interaction):
@@ -283,14 +281,14 @@ class ChatCog(commands.Cog):
             GOOBY_SYSTEM_PROMPT = new_personality
             
             await interaction.followup.send(
-                "Personality reloaded successfully! I'm feeling goobly fresh! 🫘✨"
+                "Personality reloaded. New me, same attitude."
             )
             logger.info("Personality reloaded via slash command")
             
         except Exception as e:
             logger.error(f"Failed to reload personality: {e}")
             await interaction.followup.send(
-                "Oops! Something went goobly wrong while reloading my personality! 😅"
+                "Well that didn't work. Personality reload failed, chief."
             )
     
     @commands.command(name="reload")
@@ -310,12 +308,12 @@ class ChatCog(commands.Cog):
             global GOOBY_SYSTEM_PROMPT
             GOOBY_SYSTEM_PROMPT = new_personality
             
-            await ctx.send("Personality reloaded! Feeling goobly fresh and ready to spread more goob vibes! 🫘✨")
+            await ctx.send("Personality reloaded. Ready to be slightly less insufferable.")
             logger.info("Personality reloaded via prefix command")
             
         except Exception as e:
             logger.error(f"Failed to reload personality: {e}")
-            await ctx.send("Oops! My goobly personality reloader got tangled up! 😅")
+            await ctx.send("Personality reload failed. How embarrassing.")
 
 async def setup(bot):
     await bot.add_cog(ChatCog(bot))

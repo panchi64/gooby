@@ -24,7 +24,7 @@ class ImagePaginator(discord.ui.View):
         if not self.results:
             return discord.Embed(
                 title="🔍 No Images Found",
-                description=f"Sorry goober, couldn't find any images for **{self.query}**! 😅",
+                description=f"No images found for **{self.query}**. Shocking.",
                 color=0xff6b6b
             )
         
@@ -146,7 +146,7 @@ class ImagesCog(commands.Cog):
             clean_query = query.strip()[:100]
             
             if not clean_query:
-                await interaction.followup.send("You need to tell me what to search for, goober! 🤔")
+                await interaction.followup.send("You need to actually tell me what to search for, genius.")
                 return
             
             # Check cache first
@@ -165,10 +165,10 @@ class ImagesCog(commands.Cog):
             if not results:
                 embed = discord.Embed(
                     title="🔍 No Images Found",
-                    description=f"Couldn't find any images for **{clean_query}**, goober! 😅\nTry different search terms!",
+                    description=f"No images found for **{clean_query}**. Try different terms.",
                     color=0xff6b6b
                 )
-                embed.set_footer(text="Goob tip: Try simpler or more common terms!")
+                embed.set_footer(text="Pro tip: Try words that actually exist.")
                 await interaction.followup.send(embed=embed)
                 return
             
@@ -186,14 +186,14 @@ class ImagesCog(commands.Cog):
         except Exception as e:
             logger.error(f"Image search error: {e}")
             await interaction.followup.send(
-                "Oops! My image search went all goobly! 🤖 Try again in a moment!"
+                "Image search failed. Technology at its finest."
             )
     
     @commands.command(name="image", aliases=['img', 'pic'])
     async def image_prefix(self, ctx, *, query: str = None):
         """Prefix version of image search"""
         if not query:
-            await ctx.send("What should I search for, goober? 🤔")
+            await ctx.send("What exactly am I supposed to search for, chief?")
             return
         
         try:
@@ -209,7 +209,7 @@ class ImagesCog(commands.Cog):
                     self.cache_results(clean_query, results)
                 
                 if not results:
-                    await ctx.send(f"No images found for **{clean_query}**, goober! 😅")
+                    await ctx.send(f"No images found for **{clean_query}**. Tragic.")
                     return
                 
                 # For prefix commands, just show the first result
@@ -236,7 +236,7 @@ class ImagesCog(commands.Cog):
                 
         except Exception as e:
             logger.error(f"Prefix image search error: {e}")
-            await ctx.send("My image finder went goobly! 🤖")
+            await ctx.send("Image search broke. Wonderful.")
     
     @app_commands.command(name="randomimage", description="Get a random image!")
     async def random_image_slash(self, interaction: discord.Interaction):
@@ -261,13 +261,13 @@ class ImagesCog(commands.Cog):
                 results = await searcher.search_with_fallback(query, max_results=3)
             
             if not results:
-                await interaction.followup.send("Couldn't find any random goobness today! 😅")
+                await interaction.followup.send("Random image generator failed. Great.")
                 return
             
             result = random.choice(results)
             
             embed = discord.Embed(
-                title="🎲 Random Goob Image!",
+                title="Random Image of Questionable Quality",
                 description=f"**Random search:** {query}",
                 color=0x7289da
             )
@@ -279,7 +279,7 @@ class ImagesCog(commands.Cog):
             )
             
             embed.set_image(url=result['url'])
-            embed.set_footer(text="Feeling lucky, goober? 🍀")
+            embed.set_footer(text="Hope you weren't expecting something good.")
             
             await interaction.followup.send(embed=embed)
             
@@ -315,11 +315,11 @@ class ImagesCog(commands.Cog):
                     
                     await ctx.send(embed=embed)
                 else:
-                    await ctx.send("No random goobness found! 😅")
+                    await ctx.send("Random search failed. Shocking.")
                     
         except Exception as e:
             logger.error(f"Random image prefix error: {e}")
-            await ctx.send("Random picker went goobly! 🤖")
+            await ctx.send("Random image picker broke. Fantastic.")
 
 async def setup(bot):
     await bot.add_cog(ImagesCog(bot))

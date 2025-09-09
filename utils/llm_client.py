@@ -96,11 +96,11 @@ class LMStudioClient:
 
 # Fallback responses when LM Studio is unavailable
 FALLBACK_RESPONSES = [
-    "Oops! My goobly brain is taking a nap right now! 😴",
-    "Hmm, seems like my goob circuits are a bit fuzzy! Try again in a sec! 🤖",
-    "Uh oh, my LLM buddy is being shy right now! Give me a moment! 🫘",
-    "Looks like I'm having a goobly moment! Be right back! ⏰",
-    "My thinking cap is in the wash! One sec, goober! 🧢"
+    "Well this is awkward. My brain decided to take a vacation.",
+    "LLM's having a moment. Fantastic timing as usual.",
+    "Yeah, so that didn't work. Try again if you feel like it.",
+    "My thinking apparatus is temporarily out of order.",
+    "Connection issues. Because of course there are."
 ]
 
 async def get_fallback_response() -> str:
