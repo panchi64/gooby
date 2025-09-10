@@ -226,36 +226,78 @@ class ContextManager:
         return "\n".join(context_lines)
     
     def format_mixed_messages(self, messages, max_messages: int = 15, 
-                            max_content_length: int = None) -> str:
+                            max_content_length: int = None, mode: str = "response") -> str:
         """
-        Format messages for LLM context, handling both DB dict format and Discord message objects
-        Provides unified formatting for any message source
+        Format messages for LLM context with clear structure and instructions
+        
+        Args:
+            messages: List of messages (dict or Discord objects)
+            max_messages: Maximum number of messages to include
+            max_content_length: Max length per message (None for no limit)
+            mode: "decision" or "response" - determines formatting and instructions
+            
+        Returns:
+            Structured context string with instructions for the LLM
         """
-        if not messages:
-            return "No recent conversation history."
+        # Build the chat history section
+        history_lines = []
         
-        context_lines = ["Recent conversation:"]
+        if messages:
+            messages_to_use = messages[-max_messages:] if len(messages) > max_messages else messages
+            
+            for msg in messages_to_use:
+                # Handle both dictionary format (from DB) and Discord message objects
+                if isinstance(msg, dict):
+                    username = msg.get('username', 'Unknown')
+                    content = msg.get('content', '')
+                else:
+                    # Discord message object
+                    username = getattr(msg.author, 'display_name', 'Unknown')
+                    content = getattr(msg, 'content', '')
+                
+                # Truncate very long messages if limit specified
+                if max_content_length and len(content) > max_content_length:
+                    content = content[:max_content_length-3] + "..."
+                
+                history_lines.append(f"{username}: {content}")
         
-        # Use the specified number of messages
-        messages_to_use = messages[-max_messages:] if len(messages) > max_messages else messages
-        
-        for msg in messages_to_use:
-            # Handle both dictionary format (from DB) and Discord message objects
-            if isinstance(msg, dict):
-                username = msg.get('username', 'Unknown')
-                content = msg.get('content', '')
+        # Format based on mode
+        if mode == "decision":
+            # Decision mode: Should Gooby respond?
+            if history_lines:
+                context = (
+                    "You are being shown recent Discord chat history for context. "
+                    "Use this to understand the conversation flow and determine if Gooby should respond.\n\n"
+                    "=== CHAT HISTORY (Most Recent Messages) ===\n"
+                    f"{chr(10).join(history_lines)}\n"
+                    "=== END CHAT HISTORY ==="
+                )
             else:
-                # Discord message object
-                username = getattr(msg.author, 'display_name', 'Unknown')
-                content = getattr(msg, 'content', '')
-            
-            # Truncate very long messages if limit specified
-            if max_content_length and len(content) > max_content_length:
-                content = content[:max_content_length-3] + "..."
-            
-            context_lines.append(f"{username}: {content}")
+                context = (
+                    "You are in a Discord chat with no recent conversation history.\n\n"
+                    "=== CHAT HISTORY ===\n"
+                    "(No recent messages)\n"
+                    "=== END CHAT HISTORY ==="
+                )
+        else:
+            # Response mode: Generate Gooby's response
+            if history_lines:
+                context = (
+                    "You are being shown recent Discord chat history for context. "
+                    "Use this to understand the conversation and craft an appropriate response as Gooby.\n\n"
+                    "=== CHAT HISTORY (Most Recent Messages) ===\n"
+                    f"{chr(10).join(history_lines)}\n"
+                    "=== END CHAT HISTORY ==="
+                )
+            else:
+                context = (
+                    "You are in a Discord chat with no recent conversation history.\n\n"
+                    "=== CHAT HISTORY ===\n"
+                    "(No recent messages)\n"
+                    "=== END CHAT HISTORY ==="
+                )
         
-        return "\n".join(context_lines)
+        return context
     
     async def should_respond_based_on_history(self, channel_id: str, user_id: str) -> float:
         """Calculate response probability based on interaction history"""

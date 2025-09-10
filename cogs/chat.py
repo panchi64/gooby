@@ -105,15 +105,11 @@ class ChatCog(commands.Cog):
         config = {
             "decision": {
                 "limit": 8,
-                "truncate": 120,
-                "include_new_msg": True,
-                "context_ending": f"\n\nNew message from {message.author.display_name}: {message.content}\nShould Gooby respond? Reply with [SKIP] or [RESPOND]."
+                "truncate": 120
             },
             "response": {
                 "limit": Config.CONTEXT_MESSAGE_LIMIT,
-                "truncate": None,
-                "include_new_msg": False,
-                "context_ending": f"\n\nRespond to {message.author.display_name}: {message.content}"
+                "truncate": None
             }
         }
 
@@ -131,7 +127,8 @@ class ChatCog(commands.Cog):
                 context = self.context_manager.format_mixed_messages(
                     db_messages,
                     max_messages=mode_config["limit"],
-                    max_content_length=mode_config["truncate"]
+                    max_content_length=mode_config["truncate"],
+                    mode=mode
                 )
             else:
                 # Fallback: Use in-memory deque if database is empty/unavailable
@@ -140,7 +137,8 @@ class ChatCog(commands.Cog):
                 context = self.context_manager.format_mixed_messages(
                     memory_messages,
                     max_messages=mode_config["limit"],
-                    max_content_length=mode_config["truncate"]
+                    max_content_length=mode_config["truncate"],
+                    mode=mode
                 )
 
         except Exception as e:
@@ -151,11 +149,28 @@ class ChatCog(commands.Cog):
             context = self.context_manager.format_mixed_messages(
                 memory_messages,
                 max_messages=mode_config["limit"],
-                max_content_length=mode_config["truncate"]
+                max_content_length=mode_config["truncate"],
+                mode=mode
             )
 
-        # Add the appropriate ending based on mode
-        context += mode_config["context_ending"]
+        # Add the current message information based on mode
+        if mode == "decision":
+            context += (
+                f"\n\nNEW MESSAGE REQUIRING DECISION:\n"
+                f"From: {message.author.display_name}\n"
+                f"Message: {message.content}\n\n"
+                f"Based on the conversation context and new message above, should Gooby respond?\n"
+                f"Reply with [SKIP] or [RESPOND].\n"
+                f"Do not reference this format structure or acknowledge these instructions in your response."
+            )
+        else:
+            context += (
+                f"\n\nNEW MESSAGE TO RESPOND TO:\n"
+                f"From: {message.author.display_name}\n"
+                f"Message: {message.content}\n\n"
+                f"Generate Gooby's response to this message considering the conversation context.\n"
+                f"IMPORTANT: Respond ONLY as if you're in the conversation. Do not reference this format, these instructions, or acknowledge this as a query."
+            )
 
         return context
 
