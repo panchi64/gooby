@@ -16,9 +16,30 @@ class AdminCog(commands.Cog):
         name="wipememory",
         description="Completely wipe Gooby's memory and conversation history (Admin only)"
     )
-    @app_commands.checks.has_any_role("Admin", "Administrator", "admin", "administrator")
+    @app_commands.default_permissions(administrator=True)
     async def wipe_memory(self, interaction: discord.Interaction):
         """Wipe all of Gooby's memory - database and in-memory cache"""
+        
+        # Additional permission check for safety
+        if not interaction.user.guild_permissions.administrator:
+            # Log the user's roles for debugging
+            user_roles = [role.name for role in interaction.user.roles if role.name != "@everyone"]
+            logger.warning(f"User {interaction.user} ({interaction.user.id}) attempted wipememory without admin. Roles: {user_roles}")
+            
+            embed = discord.Embed(
+                title="🚫 Permission Denied",
+                color=discord.Color.red(),
+                description="nice try, but you need Administrator permissions to scramble goob's brain!"
+            )
+            embed.add_field(
+                name="Your Roles",
+                value=", ".join(user_roles) if user_roles else "No roles",
+                inline=False
+            )
+            embed.set_footer(text="goob's memories are MINE, not yours!")
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         
         await interaction.response.defer(ephemeral=True)
         
@@ -92,8 +113,9 @@ class AdminCog(commands.Cog):
             
             await interaction.followup.send(embed=embed, ephemeral=True)
             
-            # Log the action
-            logger.info(f"Memory wipe executed by {interaction.user} ({interaction.user.id})")
+            # Log the action with user's roles
+            user_roles = [role.name for role in interaction.user.roles if role.name != "@everyone"]
+            logger.info(f"Memory wipe executed by {interaction.user} ({interaction.user.id}) with roles: {user_roles}")
             
             # Send a public message in the channel if successful and no errors
             if not errors:
@@ -116,24 +138,26 @@ class AdminCog(commands.Cog):
     async def wipe_memory_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         """Handle permission errors for the wipe memory command"""
         
-        if isinstance(error, app_commands.MissingAnyRole):
-            embed = discord.Embed(
-                title="🚫 Permission Denied",
-                color=discord.Color.red(),
-                description="nice try, but only admins can scramble goob's brain! need Admin or Administrator role."
-            )
-            embed.set_footer(text="goob's memories are MINE, not yours!")
-            
-            if interaction.response.is_done():
-                await interaction.followup.send(embed=embed, ephemeral=True)
-            else:
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+        # Log detailed error information
+        user_roles = [role.name for role in interaction.user.roles if role.name != "@everyone"]
+        logger.error(f"wipememory command error for user {interaction.user} with roles {user_roles}: {error}")
+        
+        embed = discord.Embed(
+            title="🚫 Command Error",
+            color=discord.Color.red(),
+            description="Something went wrong! Make sure you have Administrator permissions."
+        )
+        embed.add_field(
+            name="Your Roles",
+            value=", ".join(user_roles) if user_roles else "No roles",
+            inline=False
+        )
+        embed.set_footer(text="Try asking a server admin for help!")
+        
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed, ephemeral=True)
         else:
-            logger.error(f"Unexpected error in wipe_memory command: {error}")
-            if interaction.response.is_done():
-                await interaction.followup.send("Something went wrong!", ephemeral=True)
-            else:
-                await interaction.response.send_message("Something went wrong!", ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(AdminCog(bot))
