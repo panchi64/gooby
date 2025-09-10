@@ -475,6 +475,27 @@ class ChatCog(commands.Cog):
         except Exception as e:
             logger.error(f"Failed to reload personality: {e}")
             await ctx.send("Personality reload failed. How embarrassing.")
+    
+    async def clear_memory(self):
+        """
+        Clear all in-memory state for the chat cog.
+        Called by admin commands for memory wipe functionality.
+        """
+        try:
+            # Clear message history deque
+            self.message_history.clear()
+            
+            # Clear decision cache
+            self.decision_cache.clear()
+            
+            # Clear rate limiting timestamps
+            self.last_response_time.clear()
+            
+            logger.info("ChatCog memory cleared successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to clear ChatCog memory: {e}")
+            raise
 
 async def setup(bot):
     await bot.add_cog(ChatCog(bot))

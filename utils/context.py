@@ -178,6 +178,32 @@ class ContextManager:
             except Exception as e:
                 logger.error(f"Failed to cleanup old messages: {e}")
     
+    async def wipe_all_messages(self) -> int:
+        """
+        Completely wipe all messages from the database.
+        Used for admin memory reset functionality.
+        
+        Returns:
+            int: Number of messages deleted
+        """
+        async with self._lock:
+            try:
+                with sqlite3.connect(self.db_path) as conn:
+                    # Get count before deletion for reporting
+                    cursor = conn.execute("SELECT COUNT(*) FROM messages")
+                    count = cursor.fetchone()[0]
+                    
+                    # Delete all messages
+                    conn.execute("DELETE FROM messages")
+                    conn.commit()
+                    
+                    logger.info(f"Wiped all {count} messages from database")
+                    return count
+                    
+            except Exception as e:
+                logger.error(f"Failed to wipe all messages: {e}")
+                return 0
+    
     def format_messages_for_llm(self, messages: List[Dict], bot_name: str = "Gooby", 
                                max_messages: int = 15, max_content_length: int = 150) -> str:
         """Format messages for LLM context with configurable limits"""
