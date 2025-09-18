@@ -238,6 +238,21 @@ class ChatCog(commands.Cog):
             # Default to skip if no clear decision found
             return "[SKIP]"
 
+    def _parse_response_with_reasoning(self, response: str) -> str:
+        """Parse response that may contain [THINK] blocks, returning only the final response
+
+        Args:
+            response: Raw response from LLM that may contain reasoning
+
+        Returns:
+            Clean response without [THINK] blocks
+        """
+        if "[/THINK]" in response:
+            # Extract everything after [/THINK] for the final response
+            return response.split("[/THINK]")[-1].strip()
+        # No thinking block, return as-is (backward compatible)
+        return response.strip()
+
     def parse_reaction_command(self, response: str) -> Tuple[str, Optional[str], Optional[str]]:
         """Parse reaction commands from response
 
@@ -297,7 +312,8 @@ class ChatCog(commands.Cog):
                 )
 
                 if response:
-                    return response
+                    # Parse out [THINK] blocks from response
+                    return self._parse_response_with_reasoning(response)
                 else:
                     return await get_fallback_response()
 
@@ -384,38 +400,6 @@ class ChatCog(commands.Cog):
 
         except Exception as e:
             logger.error(f"Failed in message handling: {e}")
-
-
-    @app_commands.command(name="goobify", description="Transform text with goobly magic!")
-    async def goobify_slash(self, interaction: discord.Interaction, text: str):
-        """Transform text with goob puns"""
-        await interaction.response.defer()
-
-        try:
-            # Ask LM Studio to goobify the text
-            goobify_prompt = f"""Add some wit and maybe a subtle goob pun to this text. Keep it clever, not overwhelming.
-
-            Original text: "{text}"
-
-            Make it more interesting but don't go overboard."""
-
-            messages = [{"role": "user", "content": goobify_prompt}]
-
-            async with LMStudioClient() as llm:
-                response = await llm.chat_completion(messages, GOOBY_SYSTEM_PROMPT)
-
-                if response:
-                    await interaction.followup.send(f"✨ Goobified: {response}")
-                else:
-                    # Fallback goobification
-                    goobified = text.replace('good', 'goob').replace('cool', 'goobly cool')
-                    if goobified == text:
-                        goobified = f"That's goob-tastic! {text}"
-                    await interaction.followup.send(f"✨ Goobified: {goobified}")
-
-        except Exception as e:
-            logger.error(f"Goobify command error: {e}")
-            await interaction.followup.send("Well, that was a spectacular failure. Maybe try again later.")
 
     @commands.command(name="goob")
     async def goob_prefix(self, ctx, *, message: str = None):
