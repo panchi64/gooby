@@ -160,7 +160,7 @@ class ChatCog(commands.Cog):
                 f"From: {message.author.display_name}\n"
                 f"Message: {message.content}\n\n"
                 f"Based on the conversation context and new message above, should Gooby respond?\n"
-                f"Reply with [SKIP] or [RESPOND].\n"
+                f"Include [SKIP] or [RESPOND] in your final response.\n"
                 f"Do not reference this format structure or acknowledge these instructions in your response."
             )
         else:
@@ -199,7 +199,9 @@ class ChatCog(commands.Cog):
                 if decision:
                     # Cache the decision for debugging
                     self.decision_cache[message.id] = decision.strip()
-                    return decision.strip()
+
+                    # Parse the decision to handle reasoning models with [THINK] blocks
+                    return self._parse_decision_response(decision.strip())
 
             return "[SKIP]"  # Default to skip if LLM fails
 
@@ -210,6 +212,31 @@ class ChatCog(commands.Cog):
                 return "[RESPOND]"
             return "[SKIP]"
 
+    def _parse_decision_response(self, decision: str) -> str:
+        """Parse decision response, handling reasoning models with [THINK] blocks
+
+        Args:
+            decision: Raw decision response from LLM
+
+        Returns:
+            "[RESPOND]" or "[SKIP]" based on the decision
+        """
+        # Check if response contains [THINK] block
+        if "[/THINK]" in decision:
+            # Extract everything after [/THINK] for the final decision
+            final_response = decision.split("[/THINK]")[-1].strip()
+        else:
+            # No thinking block, use entire response (backward compatible)
+            final_response = decision.strip()
+
+        # Look for decision in the appropriate section
+        if "[RESPOND]" in final_response:
+            return "[RESPOND]"
+        elif "[SKIP]" in final_response:
+            return "[SKIP]"
+        else:
+            # Default to skip if no clear decision found
+            return "[SKIP]"
 
     def parse_reaction_command(self, response: str) -> Tuple[str, Optional[str], Optional[str]]:
         """Parse reaction commands from response
