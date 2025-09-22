@@ -32,7 +32,6 @@ class GoobyBot(commands.Bot):
         
         # Load cogs
         await self.load_extension('cogs.chat')
-        await self.load_extension('cogs.memes')
         await self.load_extension('cogs.images')
         await self.load_extension('cogs.dice')
         await self.load_extension('cogs.admin')

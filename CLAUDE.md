@@ -13,7 +13,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 python3 -m venv gooby-env
 source gooby-env/bin/activate  # On Windows: gooby-env\Scripts\activate
 pip install -r requirements.txt
-python create_templates.py
 ```
 
 **Running the Bot:**
@@ -35,10 +34,9 @@ python bot.py
 **Core Structure:**
 - `bot.py` - Main Discord bot entry point with GoobyBot class
 - `config.py` - Configuration management and personality loading
-- `cogs/` - Discord.py cog modules for features (chat, memes, images)
-- `utils/` - Utility modules for LLM, context, image processing
+- `cogs/` - Discord.py cog modules for features (chat, images, dice, admin)
+- `utils/` - Utility modules for LLM, context, image search
 - `data/` - Runtime data (SQLite database, logs)
-- `assets/` - Static resources (meme templates, fonts)
 
 **Key Components:**
 1. **Chat System** (`cogs/chat.py`):
@@ -66,7 +64,6 @@ python bot.py
 - discord.py >= 2.3.0 for Discord API
 - python-dotenv for environment management
 - aiohttp for HTTP requests
-- Pillow for image processing (memes)
 - duckduckgo-search for image search
 
 **Configuration:**
@@ -78,5 +75,4 @@ python bot.py
 **Important Notes:**
 - Bot requires "Message Content Intent" enabled in Discord Developer Portal
 - LM Studio must be running locally with a loaded model before starting bot
-- Meme templates must be set up with `create_templates.py`
 - Database automatically created on first run in `data/` directory

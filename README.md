@@ -38,11 +38,6 @@
 - Supports image analysis (multimodal)
 - Rate limiting and server restrictions
 
-### 🎭 **Meme Generation**
-- Built-in popular meme templates
-- Custom text overlay with automatic sizing
-- Random meme generator
-- Template management and autocomplete
 
 ### 🎲 **Dice Rolling**
 - Advanced dice expressions (`3d20 + 5`, `2d6 - 1d4`)
@@ -87,7 +82,6 @@ python setup.py
 python3 -m venv gooby-env
 source gooby-env/bin/activate  # Windows: gooby-env\Scripts\activate
 pip install -r requirements.txt
-python create_templates.py
 ```
 
 **Configure:**
@@ -211,9 +205,6 @@ AI_TIMEOUT=30
 # Enable debug logging (true/false, default: false)
 DEBUG_MODE=false
 
-# Maximum file size for meme templates in MB (default: 10)
-MAX_TEMPLATE_SIZE=10
-
 # Custom personality file path (optional)
 # PERSONALITY_FILE=custom_personality.md
 ```
@@ -226,9 +217,6 @@ MAX_TEMPLATE_SIZE=10
 
 | Command | Parameters | Description | Example |
 |---------|-----------|-------------|--------|
-| `/meme` | `template`, `top_text`, `bottom_text` | Create custom memes | `/meme drake "Code works" "Code doesn't work"` |
-| `/randommeme` | `top_text`, `bottom_text` | Random template meme | `/randommeme "Debugging" "Still debugging"` |
-| `/templates` | - | List available meme templates | `/templates` |
 | `/image` | `query` | Search for images | `/image cute puppies` |
 | `/randomimage` | - | Get a random image | `/randomimage` |
 | `/roll` | `expression` | Roll dice with expressions | `/roll 3d20`, `/roll 1d4 + 2d6 + 5` |
@@ -240,8 +228,6 @@ MAX_TEMPLATE_SIZE=10
 | Command | Format | Description |
 |---------|--------|------------|
 | `!goob` | `!goob [message]` | Chat with Gooby |
-| `!meme` | `!meme [template] [top text] \| [bottom text]` | Create memes |
-| `!templates` | `!templates` | List templates |
 | `!image` | `!image [search query]` | Search images |
 | `!roll` | `!roll [expression]` | Roll dice (aliases: `!dice`, `!r`) |
 | `!reload` | `!reload` | Reload personality (owner only) |
@@ -282,26 +268,19 @@ gooby/
 ├── 🎭 gooby_personality.md     # Personality configuration
 ├── 🧠 gooby_decision.md        # Decision-making logic
 ├── 📖 CLAUDE.md                # Development guidance for Claude Code
-├── 🛠️ create_templates.py       # Meme template setup utility
 ├── 🛠️ setup.py                 # Setup script
 ├── 🔍 show_llm_context.py      # Context debugging utility
 │
 ├── 🧩 cogs/                    # Bot feature modules (Discord.py cogs)
 │   ├── 💬 chat.py              # AI chat, personality & auto-responses
-│   ├── 🎭 memes.py             # Meme generation & template management
 │   ├── 🖼️ images.py            # Image search & random images
 │   ├── 🎲 dice.py              # Dice rolling with natural language parsing
 │   └── 🛡️ admin.py             # Administrative commands
 │
 ├── 🛠️ utils/                   # Helper modules & utilities
 │   ├── 🤖 llm_client.py        # LM Studio API integration
-│   ├── 🎨 image_maker.py       # Meme creation & image processing
 │   ├── 🔍 image_search.py      # DuckDuckGo image search
 │   └── 💾 context.py           # Conversation memory & database
-│
-├── 🎨 assets/                  # Static bot resources (created by setup)
-│   ├── 🔤 fonts/               # Meme fonts
-│   └── 🖼️ templates/           # Meme template images
 │
 └── 💾 data/                    # Runtime data (created automatically)
     ├── 🗄️ gooby.db             # SQLite conversation history
@@ -405,9 +384,6 @@ MAX_TOKENS=2000
 - Verify "Message Content Intent" is enabled
 - Ensure bot has proper permissions in Discord
 
-**Meme generation fails:**
-- Run `python create_templates.py` to set up templates
-- Check that `assets/templates/` directory exists
 
 **Connection issues:**
 - Verify `.env` file has correct tokens
@@ -428,8 +404,8 @@ MAX_TOKENS=2000
 
 **Project structure:**
 - `bot.py` - Main bot entry point
-- `cogs/` - Feature modules (chat, memes, images, dice, admin)
-- `utils/` - Helper utilities (LLM client, image processing, etc.)
+- `cogs/` - Feature modules (chat, images, dice, admin)
+- `utils/` - Helper utilities (LLM client, image search, etc.)
 - `config.py` - Configuration and personality loading
 
 ---

@@ -47,10 +47,6 @@ def main():
     if not run_command("gooby-env/bin/pip install -r requirements.txt", "Installing dependencies"):
         sys.exit(1)
     
-    # Create meme templates
-    if not run_command("gooby-env/bin/python create_templates.py", "Setting up meme templates"):
-        sys.exit(1)
-    
     # Create .env if it doesn't exist
     if not Path(".env").exists():
         if Path(".env.example").exists():
