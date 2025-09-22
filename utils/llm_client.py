@@ -176,6 +176,13 @@ class LMStudioClient:
                         message = choice.get('message', {})
                         logger.debug(f"Message keys: {list(message.keys())}")
                         content = message.get('content', '')
+
+                        # Check for native reasoning content
+                        reasoning_content = message.get('reasoning_content', '')
+                        if reasoning_content:
+                            logger.debug(f"Reasoning content found: {len(reasoning_content)} chars")
+                            logger.debug(f"Reasoning preview: {repr(reasoning_content[:100])}")
+
                         logger.debug(f"Raw content type: {type(content)}, length: {len(content) if content else 'None'}")
                         if content:
                             logger.debug(f"Content preview: {repr(content[:100])}")

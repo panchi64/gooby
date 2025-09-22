@@ -200,8 +200,8 @@ class ChatCog(commands.Cog):
                     # Cache the decision for debugging
                     self.decision_cache[message.id] = decision.strip()
 
-                    # Parse the decision to handle reasoning models with [THINK] blocks
-                    return self._parse_decision_response(decision.strip())
+                    # Return the decision directly (LM Studio now handles reasoning natively)
+                    return decision.strip()
 
             return "[SKIP]"  # Default to skip if LLM fails
 
@@ -212,46 +212,7 @@ class ChatCog(commands.Cog):
                 return "[RESPOND]"
             return "[SKIP]"
 
-    def _parse_decision_response(self, decision: str) -> str:
-        """Parse decision response, handling reasoning models with [THINK] blocks
 
-        Args:
-            decision: Raw decision response from LLM
-
-        Returns:
-            "[RESPOND]" or "[SKIP]" based on the decision
-        """
-        # Check if response contains [THINK] block
-        if "[/THINK]" in decision:
-            # Extract everything after [/THINK] for the final decision
-            final_response = decision.split("[/THINK]")[-1].strip()
-        else:
-            # No thinking block, use entire response (backward compatible)
-            final_response = decision.strip()
-
-        # Look for decision in the appropriate section
-        if "[RESPOND]" in final_response:
-            return "[RESPOND]"
-        elif "[SKIP]" in final_response:
-            return "[SKIP]"
-        else:
-            # Default to skip if no clear decision found
-            return "[SKIP]"
-
-    def _parse_response_with_reasoning(self, response: str) -> str:
-        """Parse response that may contain [THINK] blocks, returning only the final response
-
-        Args:
-            response: Raw response from LLM that may contain reasoning
-
-        Returns:
-            Clean response without [THINK] blocks
-        """
-        if "[/THINK]" in response:
-            # Extract everything after [/THINK] for the final response
-            return response.split("[/THINK]")[-1].strip()
-        # No thinking block, return as-is (backward compatible)
-        return response.strip()
 
     def parse_reaction_command(self, response: str) -> Tuple[str, Optional[str], Optional[str]]:
         """Parse reaction commands from response
@@ -312,8 +273,8 @@ class ChatCog(commands.Cog):
                 )
 
                 if response:
-                    # Parse out [THINK] blocks from response
-                    return self._parse_response_with_reasoning(response)
+                    # Return response directly (LM Studio now handles reasoning natively)
+                    return response.strip()
                 else:
                     return await get_fallback_response()
 

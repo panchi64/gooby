@@ -130,21 +130,14 @@ async def make_lm_studio_call(messages: List[Dict], system_prompt: str, call_typ
         return None
 
 def parse_decision_response(decision: str) -> str:
-    """Parse the decision response"""
+    """Parse the decision response (LM Studio now handles reasoning natively)"""
     print(f"\nParsing decision response...")
 
-    # Check if response contains [THINK] block
-    if "[/THINK]" in decision:
-        # Extract everything after [/THINK] for the final decision
-        final_response = decision.split("[/THINK]")[-1].strip()
-        print(f"Found [THINK] block, extracting final response")
-        print(f"Final response: {final_response[:100]}...")
-    else:
-        # No thinking block, use entire response (backward compatible)
-        final_response = decision.strip()
-        print(f"No [THINK] block found, using entire response")
+    # Use the response directly since LM Studio handles reasoning natively
+    final_response = decision.strip()
+    print(f"Using response directly: {final_response[:100]}...")
 
-    # Look for decision in the appropriate section
+    # Look for decision in the response
     if "[RESPOND]" in final_response:
         print("Decision: [RESPOND]")
         return "[RESPOND]"
