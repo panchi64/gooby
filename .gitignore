@@ -16,6 +16,7 @@ pip-delete-this-directory.txt
 
 # Database
 data/gooby.db
+data/mcp_queue.db
 
 # Logs
 *.log

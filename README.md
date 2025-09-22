@@ -338,7 +338,7 @@ gooby/
 **Gooby**: "Makes sense, world demanding lately"
 
 **User**: "React to this with 🎉"
-**Gooby**: `[REACT:last:🎉]`
+**Gooby**: *(Uses MCP add_discord_reaction tool to apply 🎉 reaction)*
 
 ---
 

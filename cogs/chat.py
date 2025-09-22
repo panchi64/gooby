@@ -2,10 +2,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import random
-import re
 import logging
 import time
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from collections import deque
 from utils.llm_client import LMStudioClient, get_fallback_response
 from utils.context import ContextManager
@@ -214,40 +213,7 @@ class ChatCog(commands.Cog):
 
 
 
-    def parse_reaction_command(self, response: str) -> Tuple[str, Optional[str], Optional[str]]:
-        """Parse reaction commands from response
 
-        Returns:
-            (clean_response, target, emoji) where target is 'last', '2', etc.
-        """
-        # Look for [REACT:target:emoji] pattern at the end
-        pattern = r'\[REACT:(\w+):(.+?)\]\s*$'
-        match = re.search(pattern, response)
-
-        if match:
-            target = match.group(1)
-            emoji = match.group(2).strip()
-            clean_response = response[:match.start()].strip()
-            return clean_response, target, emoji
-
-        return response, None, None
-
-    async def apply_reaction(self, target: str, emoji: str, channel):
-        """Apply reaction to the specified message"""
-        try:
-            if target == 'none':
-                return
-
-            if target == 'last' and len(self.message_history) > 0:
-                # React to the most recent user message
-                await self.message_history[-1].add_reaction(emoji)
-            elif target.isdigit():
-                # React to a message N positions back
-                position = int(target)
-                if position <= len(self.message_history):
-                    await self.message_history[-position].add_reaction(emoji)
-        except Exception as e:
-            logger.debug(f"Failed to apply reaction: {e}")
 
     async def generate_response(self, message: discord.Message) -> str:
         """Second stage: Generate Gooby's actual response"""
@@ -325,37 +291,19 @@ class ChatCog(commands.Cog):
                 async with message.channel.typing():
                     response = await self.generate_response(message)
 
-                    # Parse reaction command if present
-                    clean_response, reaction_target, reaction_emoji = self.parse_reaction_command(response)
-
-                    # Only send message if there's actual content
-                    if clean_response and clean_response.strip():
-                        sent_message = await message.channel.send(clean_response)
+                    # Send message if there's content
+                    if response and response.strip():
+                        sent_message = await message.channel.send(response)
 
                         # Record bot message response
                         await self.context_manager.add_message(
                             str(message.channel.id),
                             str(self.bot.user.id),
                             self.bot.user.display_name,
-                            clean_response,
+                            response,
                             bot_responded=True,
                             message_id=str(sent_message.id)
                         )
-
-                    # Apply reaction if specified
-                    if reaction_target and reaction_emoji:
-                        await self.apply_reaction(reaction_target, reaction_emoji, message.channel)
-
-                        # If we only reacted (no text), still record that the bot responded
-                        if not (clean_response and clean_response.strip()):
-                            await self.context_manager.add_message(
-                                str(message.channel.id),
-                                str(self.bot.user.id),
-                                self.bot.user.display_name,
-                                f"[Reacted with {reaction_emoji}]",
-                                bot_responded=True,
-                                message_id=None  # No message ID for reaction-only responses
-                            )
 
                     # Update rate limiting
                     self.last_response_time[message.channel.id] = time.time()
@@ -385,16 +333,9 @@ class ChatCog(commands.Cog):
                 mock_msg = MockMessage(message, ctx.author, ctx.channel)
                 response = await self.generate_response(mock_msg)
 
-                # Parse and clean response
-                clean_response, reaction_target, reaction_emoji = self.parse_reaction_command(response)
-
-                # Only send message if there's actual content
-                if clean_response and clean_response.strip():
-                    await ctx.send(clean_response)
-
-                # Apply reaction if specified
-                if reaction_target and reaction_emoji:
-                    await self.apply_reaction(reaction_target, reaction_emoji, ctx.channel)
+                # Send response if there's content
+                if response and response.strip():
+                    await ctx.send(response)
 
         except Exception as e:
             logger.error(f"Goob prefix command error: {e}")
