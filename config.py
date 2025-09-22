@@ -26,7 +26,9 @@ class Config:
     # LM Studio Configuration
     LM_STUDIO_URL = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1/chat/completions')
     LM_STUDIO_TIMEOUT = int(os.getenv('LM_STUDIO_TIMEOUT', '30'))
-    MAX_TOKENS = int(os.getenv('MAX_TOKENS', '500'))
+    MAX_TOKENS = int(os.getenv('MAX_TOKENS', '2000'))
+    # Note: TEMPERATURE is kept for compatibility but not sent to LM Studio API
+    # LM Studio will use its own configured temperature setting
     TEMPERATURE = float(os.getenv('TEMPERATURE', '0.8'))
 
     # Bot Personality
