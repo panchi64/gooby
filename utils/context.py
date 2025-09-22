@@ -38,7 +38,8 @@ class ContextManager:
                         content TEXT NOT NULL,
                         timestamp DATETIME NOT NULL,
                         bot_responded BOOLEAN DEFAULT FALSE,
-                        image_urls TEXT DEFAULT NULL
+                        image_urls TEXT DEFAULT NULL,
+                        message_id TEXT DEFAULT NULL
                     )
                 """)
                 
@@ -59,6 +60,14 @@ class ContextManager:
                 except sqlite3.OperationalError:
                     # Column already exists
                     pass
+
+                # Add message_id column to existing tables if it doesn't exist
+                try:
+                    conn.execute("ALTER TABLE messages ADD COLUMN message_id TEXT DEFAULT NULL")
+                    logger.info("Added message_id column to existing messages table")
+                except sqlite3.OperationalError:
+                    # Column already exists
+                    pass
                 
                 conn.commit()
                 logger.info("Database initialized successfully")
@@ -66,8 +75,9 @@ class ContextManager:
         except Exception as e:
             logger.error(f"Failed to initialize database: {e}")
     
-    async def add_message(self, channel_id: str, user_id: str, username: str, 
-                         content: str, bot_responded: bool = False, image_urls: List[str] = None):
+    async def add_message(self, channel_id: str, user_id: str, username: str,
+                         content: str, bot_responded: bool = False, image_urls: List[str] = None,
+                         message_id: str = None):
         """Add a message to the context history"""
         # Check if channel is allowed before storing
         if not self.is_channel_allowed(channel_id):
@@ -84,9 +94,9 @@ class ContextManager:
                         image_urls_json = json.dumps(image_urls)
                     
                     conn.execute("""
-                        INSERT INTO messages (channel_id, user_id, username, content, timestamp, bot_responded, image_urls)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (channel_id, user_id, username, content, datetime.utcnow(), bot_responded, image_urls_json))
+                        INSERT INTO messages (channel_id, user_id, username, content, timestamp, bot_responded, image_urls, message_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (channel_id, user_id, username, content, datetime.utcnow(), bot_responded, image_urls_json, message_id))
                     
                     conn.commit()
                     
@@ -104,7 +114,7 @@ class ContextManager:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute("""
-                    SELECT user_id, username, content, timestamp, bot_responded, image_urls
+                    SELECT user_id, username, content, timestamp, bot_responded, image_urls, message_id
                     FROM messages
                     WHERE channel_id = ?
                     ORDER BY timestamp DESC
@@ -128,7 +138,8 @@ class ContextManager:
                         'content': row['content'],
                         'timestamp': row['timestamp'],
                         'bot_responded': bool(row['bot_responded']),
-                        'image_urls': image_urls
+                        'image_urls': image_urls,
+                        'message_id': row['message_id']
                     })
                 
                 # Return in chronological order (oldest first)
@@ -250,16 +261,22 @@ class ContextManager:
                 if isinstance(msg, dict):
                     username = msg.get('username', 'Unknown')
                     content = msg.get('content', '')
+                    message_id = msg.get('message_id')
                 else:
                     # Discord message object
                     username = getattr(msg.author, 'display_name', 'Unknown')
                     content = getattr(msg, 'content', '')
-                
+                    message_id = getattr(msg, 'id', None)
+
                 # Truncate very long messages if limit specified
                 if max_content_length and len(content) > max_content_length:
                     content = content[:max_content_length-3] + "..."
-                
-                history_lines.append(f"{username}: {content}")
+
+                # Format with message ID if available
+                if message_id:
+                    history_lines.append(f"[ID: {message_id}] {username}: {content}")
+                else:
+                    history_lines.append(f"{username}: {content}")
         
         # Format based on mode
         if mode == "decision":

@@ -2,3 +2,9 @@ discord.py>=2.3.0
 python-dotenv>=1.0.0
 aiohttp>=3.9.0
 duckduckgo-search>=4.0.0
+
+# MCP Integration Dependencies
+fastmcp>=2.0.0
+aiosqlite>=0.20.0
+pydantic>=2.0.0
+structlog>=24.0.0

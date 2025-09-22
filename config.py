@@ -39,6 +39,12 @@ class Config:
     # Database
     DATABASE_PATH = os.getenv('DATABASE_PATH', './data/gooby.db')
 
+    # MCP Server Configuration
+    MCP_ENABLED = os.getenv('MCP_ENABLED', 'true').lower() == 'true'
+    MCP_QUEUE_DB_PATH = os.getenv('MCP_QUEUE_DB_PATH', './data/mcp_queue.db')
+    MCP_POLL_INTERVAL = float(os.getenv('MCP_POLL_INTERVAL', '2.0'))
+    MCP_CLEANUP_DAYS = int(os.getenv('MCP_CLEANUP_DAYS', '7'))
+
     # Validation
     @classmethod
     def validate(cls):

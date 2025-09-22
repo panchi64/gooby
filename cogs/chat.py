@@ -304,7 +304,8 @@ class ChatCog(commands.Cog):
             str(message.author.id),
             message.author.display_name,
             message.content,
-            image_urls=image_urls if image_urls else None
+            image_urls=image_urls if image_urls else None,
+            message_id=str(message.id)
         )
 
         # Store message in history for reaction targeting and context
@@ -337,7 +338,8 @@ class ChatCog(commands.Cog):
                             str(self.bot.user.id),
                             self.bot.user.display_name,
                             clean_response,
-                            bot_responded=True
+                            bot_responded=True,
+                            message_id=str(sent_message.id)
                         )
 
                     # Apply reaction if specified
@@ -351,7 +353,8 @@ class ChatCog(commands.Cog):
                                 str(self.bot.user.id),
                                 self.bot.user.display_name,
                                 f"[Reacted with {reaction_emoji}]",
-                                bot_responded=True
+                                bot_responded=True,
+                                message_id=None  # No message ID for reaction-only responses
                             )
 
                     # Update rate limiting
@@ -471,18 +474,92 @@ class ChatCog(commands.Cog):
         try:
             # Clear message history deque
             self.message_history.clear()
-            
+
             # Clear decision cache
             self.decision_cache.clear()
-            
+
             # Clear rate limiting timestamps
             self.last_response_time.clear()
-            
+
             logger.info("ChatCog memory cleared successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to clear ChatCog memory: {e}")
             raise
+
+    @app_commands.command(name="mcp_status", description="Check MCP server status and queue statistics (Owner only)")
+    async def mcp_status_slash(self, interaction: discord.Interaction):
+        """Check MCP server status and queue statistics"""
+        # Check if user is bot owner
+        app_info = await self.bot.application_info()
+        if interaction.user != app_info.owner:
+            await interaction.response.send_message(
+                "Sorry, only my creator can check MCP status! 🤖",
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.defer()
+
+        try:
+            if not self.bot.mcp_handler:
+                await interaction.followup.send("MCP integration is disabled in configuration.")
+                return
+
+            # Get queue statistics
+            stats = await self.bot.mcp_handler.get_queue_stats()
+
+            # Check if MCP handler is running
+            is_running = self.bot.mcp_handler.is_running
+
+            status_msg = f"""**MCP Server Status:**
+🔄 **Handler Running:** {'✅ Yes' if is_running else '❌ No'}
+📊 **Queue Statistics:**
+  • Pending: {stats['pending']}
+  • Completed: {stats['completed']}
+  • Failed: {stats['failed']}
+  • Total: {stats['total']}
+
+📁 **Database:** `{self.bot.mcp_handler.db_path}`
+⏱️ **Poll Interval:** {self.bot.mcp_handler.poll_interval}s"""
+
+            await interaction.followup.send(status_msg)
+
+        except Exception as e:
+            logger.error(f"Error getting MCP status: {e}")
+            await interaction.followup.send(f"Error getting MCP status: {str(e)}")
+
+    @commands.command(name="mcp")
+    @commands.is_owner()
+    async def mcp_status_prefix(self, ctx):
+        """Check MCP server status and queue statistics (Owner only)"""
+        try:
+            if not self.bot.mcp_handler:
+                await ctx.send("MCP integration is disabled in configuration.")
+                return
+
+            # Get queue statistics
+            stats = await self.bot.mcp_handler.get_queue_stats()
+
+            # Check if MCP handler is running
+            is_running = self.bot.mcp_handler.is_running
+
+            status_msg = f"""**MCP Server Status:**
+🔄 **Handler Running:** {'✅ Yes' if is_running else '❌ No'}
+📊 **Queue Statistics:**
+  • Pending: {stats['pending']}
+  • Completed: {stats['completed']}
+  • Failed: {stats['failed']}
+  • Total: {stats['total']}
+
+📁 **Database:** `{self.bot.mcp_handler.db_path}`
+⏱️ **Poll Interval:** {self.bot.mcp_handler.poll_interval}s"""
+
+            await ctx.send(status_msg)
+
+        except Exception as e:
+            logger.error(f"Error getting MCP status: {e}")
+            await ctx.send(f"Error getting MCP status: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(ChatCog(bot))

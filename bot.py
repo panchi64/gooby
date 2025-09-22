@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import logging
 from config import Config, GOOBY_SYSTEM_PROMPT
+from utils.mcp_handler import MCPHandler
 
 # Set up logging
 logging.basicConfig(
@@ -25,6 +26,11 @@ class GoobyBot(commands.Bot):
             intents=intents,
             case_insensitive=True
         )
+
+        # Initialize MCP handler if enabled
+        self.mcp_handler = None
+        if Config.MCP_ENABLED:
+            self.mcp_handler = MCPHandler(self, Config.MCP_QUEUE_DB_PATH)
         
     async def setup_hook(self):
         """Called when the bot is starting up"""
@@ -42,6 +48,14 @@ class GoobyBot(commands.Bot):
             logger.info(f"Synced {len(synced)} command(s)")
         except Exception as e:
             logger.error(f"Failed to sync commands: {e}")
+
+        # Start MCP handler if enabled
+        if self.mcp_handler:
+            try:
+                await self.mcp_handler.start()
+                logger.info("MCP handler started successfully")
+            except Exception as e:
+                logger.error(f"Failed to start MCP handler: {e}")
     
     async def on_ready(self):
         """Called when bot is ready"""
@@ -84,6 +98,17 @@ class GoobyBot(commands.Bot):
         else:
             logger.error(f"Command error: {error}")
             await ctx.send("Well, that didn't go as planned. Great.")
+
+    async def close(self):
+        """Gracefully close the bot and cleanup resources."""
+        if self.mcp_handler:
+            try:
+                await self.mcp_handler.stop()
+                logger.info("MCP handler stopped")
+            except Exception as e:
+                logger.error(f"Error stopping MCP handler: {e}")
+
+        await super().close()
 
 async def main():
     """Main function to run the bot"""
