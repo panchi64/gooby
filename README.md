@@ -193,9 +193,6 @@ BOT_PREFIX=!
 # LM Studio API endpoint (default: local)
 LM_STUDIO_URL=http://localhost:1234/v1/chat/completions
 
-# Chance Gooby responds randomly (0.0-1.0, default: 0.3)
-RESPONSE_CHANCE=0.3
-
 # Maximum conversation history to remember (default: 50)
 MAX_CONTEXT_LENGTH=50
 
@@ -354,7 +351,6 @@ ALLOWED_SERVER_ID=your_server_id_here
 # Optional
 BOT_PREFIX=!
 LM_STUDIO_URL=http://localhost:1234/v1/chat/completions
-RESPONSE_CHANCE=0.3
 CONTEXT_MESSAGE_LIMIT=20
 LM_STUDIO_TIMEOUT=30
 MAX_TOKENS=2000

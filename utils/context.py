@@ -298,31 +298,3 @@ class ContextManager:
                 )
         
         return context
-    
-    async def should_respond_based_on_history(self, channel_id: str, user_id: str) -> float:
-        """Calculate response probability based on interaction history"""
-        try:
-            # Get recent messages
-            recent_messages = await self.get_recent_messages(channel_id, 10)
-            
-            if not recent_messages:
-                return 0.5  # Default probability
-            
-            # Count bot responses in recent messages
-            bot_responses = sum(1 for msg in recent_messages if msg['bot_responded'])
-            total_messages = len(recent_messages)
-            
-            # Lower probability if bot has been very active
-            if bot_responses / total_messages > 0.5:
-                return 0.2
-            
-            # Higher probability if user hasn't interacted much
-            user_interactions = await self.get_user_interaction_count(user_id, 1)
-            if user_interactions < 3:
-                return 0.7
-            
-            return Config.RESPONSE_CHANCE
-            
-        except Exception as e:
-            logger.error(f"Failed to calculate response probability: {e}")
-            return Config.RESPONSE_CHANCE

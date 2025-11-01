@@ -33,7 +33,6 @@ class Config:
 
     # Bot Personality
     BOT_NAME = os.getenv('BOT_NAME', 'Gooby')
-    RESPONSE_CHANCE = float(os.getenv('RESPONSE_CHANCE', '0.3'))
     CONTEXT_MESSAGE_LIMIT = int(os.getenv('CONTEXT_MESSAGE_LIMIT', '20'))
 
     # Database
